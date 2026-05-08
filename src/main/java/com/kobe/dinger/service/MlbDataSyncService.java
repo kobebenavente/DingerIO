@@ -40,11 +40,15 @@ public class MlbDataSyncService {
             if(teamRepository.existsByMlbTeamId(team.getId())){
                 Team existingTeam = teamRepository.findByMlbTeamId(team.getId()).get();
                 existingTeam.setTeamName(team.getTeamName());
+                existingTeam.setDivisionId(team.getDivision().getId());
+                existingTeam.setLeagueId(team.getLeague().getId());
                 teamRepository.save(existingTeam);
             } else {
                 Team newTeam = new Team();
                 newTeam.setMlbTeamId(team.getId());
                 newTeam.setTeamName(team.getTeamName());
+                newTeam.setDivisionId(team.getDivision().getId());
+                newTeam.setLeagueId(team.getLeague().getId());
                 teamRepository.save(newTeam);
             }
         }

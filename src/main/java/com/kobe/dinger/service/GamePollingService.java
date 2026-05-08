@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,18 +89,9 @@ public class GamePollingService {
 
     @Scheduled(fixedRate = 15000)
     public void pollGames(){
-
-
-        LocalDate todayUTC = LocalDate.now(ZoneOffset.UTC);
-        String todayToString = todayUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String scheduleForWeekUrl = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=" + todayToString + "&endDate=";
-
-        if(todayUTC.getDayOfWeek() == DayOfWeek.MONDAY){
-            scheduleForWeekUrl = scheduleForWeekUrl + todayUTC.plusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        }
-
-        String url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + todayToString;
-        log.info("Polling games for {}", todayToString);
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + today;
+        log.info("Polling games for {}", today);
 
         //ScheduleResponseDTO has list of Date DTOs -> DateDTO has list of GameDTOs -> GameDTO has GamePK and DTOs for status (live, ended, etc), and teams (away and home)
         //Summary: This DTO is used for getting the games for the current day in order to process their live data
@@ -136,7 +126,7 @@ public class GamePollingService {
             }
 
             if ("Final".equals(game.getStatus().getAbstractGameState())) {
-                mlbLiveRetrievalService.processGameEnd(game.getGamePk(), subscriptions, lastGameState);
+                mlbLiveRetrievalService.processGameEnd(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
             } else {
                 mlbLiveRetrievalService.processGame(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
             }

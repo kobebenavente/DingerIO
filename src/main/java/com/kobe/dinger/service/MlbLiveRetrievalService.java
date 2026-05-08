@@ -1,28 +1,37 @@
 package com.kobe.dinger.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.kobe.dinger.DTOs.livegamefeed.AllPlaysDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LinescoreDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LiveFeedResponseDTO;
+import com.kobe.dinger.DTOs.standings.RecordsDTO;
+import com.kobe.dinger.DTOs.standings.StandingsResponseDTO;
+import com.kobe.dinger.DTOs.standings.StandingsTeamDTO;
+import com.kobe.dinger.DTOs.standings.TeamRecordsDTO;
 import com.kobe.dinger.model.GameState;
 import com.kobe.dinger.model.NotificationEvent;
 import com.kobe.dinger.model.Team;
 import com.kobe.dinger.model.TeamSubscription;
+import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class MlbLiveRetrievalService {
     private RestTemplate restTemplate = new RestTemplate();
     private NotificationService notificationService;
+    private TeamRepository teamRepository;
 
-    public MlbLiveRetrievalService(NotificationService notificationService) {
+    public MlbLiveRetrievalService(NotificationService notificationService, TeamRepository teamRepository) {
         this.notificationService = notificationService;
+        this.teamRepository = teamRepository;
     }
 
     public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam) {
@@ -61,6 +70,7 @@ public class MlbLiveRetrievalService {
 
         
         boolean scoreChanged = previous.getScoringPlays().size() < scoringPlays.size(); 
+        
         //Fields that change based on if the score was changed
         List<AllPlaysDTO> allPlays;
         int lastScoringPlayId;
@@ -142,10 +152,10 @@ public class MlbLiveRetrievalService {
             } 
         } else {
             if(subbedTeamIsHomeTeam && homeTeamScored){
-                scoringMessage = homeTeam.getTeamEmoji() + homeTeam.getTeamName() + "  score!  " + homeTeam.getTeamEmoji() + "\n"
+                scoringMessage = homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + " score!  " + homeTeam.getTeamEmoji() + "\n"
                 + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);
             } else if (!subbedTeamIsHomeTeam && awayTeamScored){
-                scoringMessage = awayTeam.getTeamEmoji() + awayTeam.getTeamName() + "  score!  " + awayTeam.getTeamEmoji() + "\n"
+                scoringMessage = awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + " score!  " + awayTeam.getTeamEmoji() + "\n"
                 + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);
             } else {
                 scoringMessage = scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);
@@ -165,7 +175,7 @@ public class MlbLiveRetrievalService {
         return lineScoreMessage;
     }
     
-    public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions,  Map<Integer, GameState> lastGameState){
+    public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions,  Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
         GameState previous = lastGameState.get(gamePk);
 
         // if previous == null then the game is not being tracked, meaning a final game notification was sent already and gamePk was removed from lastGameState hashmap in 
@@ -180,21 +190,69 @@ public class MlbLiveRetrievalService {
             return;
         }
 
-        String awayName = feed.getGameData().getTeams().getAway().getName();
-        String homeName = feed.getGameData().getTeams().getHome().getName();
+        String homeTeamStandingsUrl = "https://statsapi.mlb.com/api/v1/standings?leagueId=" + homeTeam.getLeagueId() + "&season=" + String.valueOf(LocalDate.now().getYear());
+        String awayTeamStandingsUrl = "";
+        StandingsResponseDTO homeTeamStandings = restTemplate.getForObject(homeTeamStandingsUrl, StandingsResponseDTO.class);
+        StandingsResponseDTO awayTeamStandings = null;
+        boolean isSameLeague = false;
+        //"https://statsapi.mlb.com/api/v1/standings?leagueId=" + awayTeam.getLeagueId() + "season=" + String.valueOf(LocalDate.now().getYear());
 
-        LinescoreDTO linescore = feed.getLiveData().getLinescore();
-        if (linescore.getCurrentInning() == null || linescore.getTeams() == null) {
-            return;
+        if(homeTeam.getLeagueId().equals(awayTeam.getLeagueId())){
+            isSameLeague = true;
+        } else {
+            awayTeamStandingsUrl = "https://statsapi.mlb.com/api/v1/standings?leagueId=" + awayTeam.getLeagueId() + "&season=" + String.valueOf(LocalDate.now().getYear());
+            awayTeamStandings = restTemplate.getForObject(awayTeamStandingsUrl, StandingsResponseDTO.class);
         }
 
+        String awayName = feed.getGameData().getTeams().getAway().getName();
+        String homeName = feed.getGameData().getTeams().getHome().getName();
+        
+        int homeFinalScore = feed.getLiveData().getLinescore().getTeams().getHome().getRuns();
+        int awayFinalScore = feed.getLiveData().getLinescore().getTeams().getAway().getRuns();
+
         for (TeamSubscription sub : subscriptions) {
+            boolean subbedTeamIsHomeTeam = sub.getTeam().equals(homeTeam);
+            StringBuilder gameEndMessage = new StringBuilder();
             Set<NotificationEvent> events = sub.getNotificationEvents();
             if (events.contains(NotificationEvent.GAME_END)) {
-                notificationService.sendNotification(sub, "Game has ended! Final Score: " + homeName + ": " + feed.getLiveData().getLinescore().getTeams().getHome().getRuns()
-            + " - " + awayName + ": " + feed.getLiveData().getLinescore().getTeams().getAway().getRuns());
+                gameEndMessage.append("Game has ended! \n Final Score: " + generateLineScores(subbedTeamIsHomeTeam, homeFinalScore, awayFinalScore, homeTeam, awayTeam));
+            }
+
+            if(events.contains(NotificationEvent.END_GAME_STANDINGS) && events.contains(NotificationEvent.GAME_END)){
+                if(subbedTeamIsHomeTeam){
+                    gameEndMessage.append("\n" + generateStandingsString(sub.getTeam().getDivisionId(), homeTeamStandings));
+                } else {
+                    if(isSameLeague){
+                        gameEndMessage.append("\n" + generateStandingsString(sub.getTeam().getDivisionId(), homeTeamStandings));
+                    } else {
+                        gameEndMessage.append("\n" + generateStandingsString(sub.getTeam().getDivisionId(), awayTeamStandings));
+                    }
+                }
+            }
+            if(gameEndMessage.length() > 0){
+                notificationService.sendNotification(sub, gameEndMessage.toString());
             }
         }
         lastGameState.remove(gamePk);
+    }
+
+    public String generateStandingsString(Integer divisionId, StandingsResponseDTO standings){
+        StringBuilder standingsToSend = new StringBuilder();
+
+        for(RecordsDTO record : standings.getRecords()){
+            if(record.getDivision().getId().equals(divisionId)){
+                List<TeamRecordsDTO> teamRecords = record.getTeamRecords();
+
+                standingsToSend.append("Updated Division Standings: \n");
+                for(int i = 0; i < 5; i++){
+                    TeamRecordsDTO standingsTeamDTO = teamRecords.get(i);
+                    Team team = teamRepository.findByMlbTeamId(teamRecords.get(i).getTeam().getId()).orElseThrow(() -> new RuntimeException("Team not found for MLB ID"));
+                    standingsToSend.append(String.valueOf(i + 1) + ". " + team.getTeamEmoji() + " " + team.getTeamName() + " (" + standingsTeamDTO.getLeagueRecord().getWins() 
+                    + "-" + standingsTeamDTO.getLeagueRecord().getLosses() + ") \n");
+                }
+                break;
+            }
+        }
+        return standingsToSend.toString();
     }
 }

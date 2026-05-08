@@ -22,6 +22,10 @@ public class Team {
 
     private String teamEmoji;
 
+    private Integer divisionId;
+
+    private Integer leagueId;
+
 
     public Team() {}
 
@@ -39,6 +43,14 @@ public class Team {
 
     public String getTeamEmoji(){return teamEmoji;}
     public void setTeamEmoji(String teamEmoji){ this.teamEmoji = teamEmoji; }
+
+    public Integer getDivisionId(){ return divisionId; }
+    public void setDivisionId(Integer divisionId){ this.divisionId = divisionId;}
+
+    public Integer getLeagueId(){return leagueId;}
+    public void setLeagueId(Integer leagueId){this.leagueId = leagueId;}
+
+
 
     @Override
     public boolean equals(Object o) {

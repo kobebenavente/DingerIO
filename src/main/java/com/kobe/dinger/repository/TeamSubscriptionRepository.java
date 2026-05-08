@@ -12,5 +12,5 @@ public interface TeamSubscriptionRepository extends JpaRepository<TeamSubscripti
     
     public List<TeamSubscription> findByTeam(Team team);
 
-    public List<TeamSubscription> findByTeamIdIn(List<Integer> ids);
+    public List<TeamSubscription> findByTeamTeamIdIn(List<Integer> ids);
 }
