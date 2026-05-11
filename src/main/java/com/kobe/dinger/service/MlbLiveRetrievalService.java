@@ -14,6 +14,7 @@ import com.kobe.dinger.DTOs.livegamefeed.AllPlaysDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LinescoreDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LiveFeedResponseDTO;
 import com.kobe.dinger.DTOs.standings.RecordsDTO;
+import com.kobe.dinger.DTOs.standings.StandingsDivisionDTO;
 import com.kobe.dinger.DTOs.standings.StandingsResponseDTO;
 import com.kobe.dinger.DTOs.standings.StandingsTeamDTO;
 import com.kobe.dinger.DTOs.standings.TeamRecordsDTO;
@@ -187,25 +188,67 @@ public class MlbLiveRetrievalService {
         if (previous == null) {
             return;
         }
-        String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
-        LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
-
-        if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null) {
-            return;
-        }
 
         String homeTeamStandingsUrl = "https://statsapi.mlb.com/api/v1/standings?leagueId=" + homeTeam.getLeagueId() + "&season=" + String.valueOf(LocalDate.now().getYear());
         String awayTeamStandingsUrl = "";
         StandingsResponseDTO homeTeamStandings = restTemplate.getForObject(homeTeamStandingsUrl, StandingsResponseDTO.class);
         StandingsResponseDTO awayTeamStandings = null;
         boolean isSameLeague = false;
-        //"https://statsapi.mlb.com/api/v1/standings?leagueId=" + awayTeam.getLeagueId() + "season=" + String.valueOf(LocalDate.now().getYear());
+        Integer homeTeamWins = 0;
+        Integer homeTeamLosses = 0;
+        Integer awayTeamWins = 0;
+        Integer awayTeamLosses = 0;
 
         if(homeTeam.getLeagueId().equals(awayTeam.getLeagueId())){
             isSameLeague = true;
+
+            for(RecordsDTO division : homeTeamStandings.getRecords()){
+                for(TeamRecordsDTO divisionTeam : division.getTeamRecords()){
+                    if(divisionTeam.getTeam().getId().equals(homeTeam.getMlbTeamId())){
+                        homeTeamWins = divisionTeam.getLeagueRecord().getWins();
+                        homeTeamLosses = divisionTeam.getLeagueRecord().getLosses();
+                    }
+                    if(divisionTeam.getTeam().getId().equals(awayTeam.getMlbTeamId())){
+                        awayTeamWins = divisionTeam.getLeagueRecord().getWins();
+                        awayTeamLosses = divisionTeam.getLeagueRecord().getLosses();
+                    }
+                }
+            }
+
         } else {
             awayTeamStandingsUrl = "https://statsapi.mlb.com/api/v1/standings?leagueId=" + awayTeam.getLeagueId() + "&season=" + String.valueOf(LocalDate.now().getYear());
             awayTeamStandings = restTemplate.getForObject(awayTeamStandingsUrl, StandingsResponseDTO.class);
+
+            for(RecordsDTO division : homeTeamStandings.getRecords()){
+                for(TeamRecordsDTO divisionTeam : division.getTeamRecords()){
+                    if(divisionTeam.getTeam().getId().equals(homeTeam.getMlbTeamId())){
+                        homeTeamWins = divisionTeam.getLeagueRecord().getWins();
+                        homeTeamLosses = divisionTeam.getLeagueRecord().getLosses();
+                    }
+                }
+            }
+
+            for(RecordsDTO division : awayTeamStandings.getRecords()){
+                for(TeamRecordsDTO divisionTeam : division.getTeamRecords()){
+                    if(divisionTeam.getTeam().getId().equals(awayTeam.getMlbTeamId())){
+                        awayTeamWins = divisionTeam.getLeagueRecord().getWins();
+                        awayTeamLosses = divisionTeam.getLeagueRecord().getLosses();
+                    }
+                }
+            }
+        }
+
+        // standings haven't updated yet. retry on next poll.
+        if(homeTeamWins.equals(previous.getHomeWins()) && homeTeamLosses.equals(previous.getHomeLosses())
+        && awayTeamWins.equals(previous.getAwayWins()) && awayTeamLosses.equals(previous.getAwayLosses())){
+            return;
+        }
+
+        String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
+        LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
+
+        if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null) {
+            return;
         }
 
         String awayName = feed.getGameData().getTeams().getAway().getName();

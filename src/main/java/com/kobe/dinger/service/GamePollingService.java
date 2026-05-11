@@ -115,6 +115,8 @@ public class GamePollingService {
 
         for (GameDTO game : games) {
 
+            int gameKey = game.getGamePk();
+
             Integer awayTeamMlbId = game.getTeams().getAway().getTeam().getId();
             Integer homeTeamMlbId = game.getTeams().getHome().getTeam().getId();
 
@@ -136,6 +138,15 @@ public class GamePollingService {
             } else{ 
                 if(!lastGameState.containsKey(game.getGamePk())){
                 lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
+                }
+                
+                if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
+                    GameState gs = lastGameState.get(game.getGamePk());
+                    gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
+                    gs.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
+                    gs.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
+                    gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
+                    gs.setWinsAndLossesSet(true);
                 }
                 if(Instant.parse(game.getGameDate()).isAfter(Instant.now())){
                     preGameService.processGame(game, game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
