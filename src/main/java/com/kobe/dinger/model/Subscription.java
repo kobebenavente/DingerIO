@@ -26,7 +26,7 @@ import jakarta.persistence.Table;
 @Table(name = "subscription")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Subscription {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer subscriptionId;
@@ -36,7 +36,7 @@ public abstract class Subscription {
     in Java, tables in the database.
     */
     @ManyToOne
-    @JoinColumn(name = "user_id") // we use this annotation so that we can still name the column in this table ourselves 
+    @JoinColumn(name = "user_id")
     private User user;
 
     @CreationTimestamp
@@ -48,10 +48,10 @@ public abstract class Subscription {
     to serve the subscription. It has no independent lifecycle, no extra fields, and would never be queried on its own.
     @ElementCollection is designed exactly for this case where the data is too simple to justify a full entity.
     */
-    @ElementCollection(fetch = FetchType.EAGER) // tells JPA this is a collection of simple values (enums), not a full entity; EAGER loads the events immediately with the subscription so they're available outside the session
-    @CollectionTable(name = "subscription_events", joinColumns = @JoinColumn(name = "subscription_id")) // names the junction table and the foreign key column pointing back to this subscription
-    @Column(name = "event_type") // names the column that stores the enum value
-    @Enumerated(EnumType.STRING) // stores the enum as its name (e.g. "INNING_CHANGE") instead of a number, so reordering enums won't corrupt data
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "subscription_events", joinColumns = @JoinColumn(name = "subscription_id"))
+    @Column(name = "event_type")
+    @Enumerated(EnumType.STRING)
     private Set<NotificationEvent> notificationEvents;
 
     protected Subscription() {}
@@ -61,22 +61,31 @@ public abstract class Subscription {
         this.notificationEvents = new HashSet<>();
     }
 
-    public Integer getSubscriptionId() { return subscriptionId; }
-    public void setSubscriptionId(Integer subscriptionId) { this.subscriptionId = subscriptionId; }
+    public Integer getSubscriptionId(){
+        return subscriptionId;
+    }
+    public void setSubscriptionId(Integer subscriptionId){
+        this.subscriptionId = subscriptionId;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public User getUser(){
+        return user;
+    }
+    public void setUser(User user){
+        this.user = user;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public Instant getCreatedAt(){
+        return createdAt;
+    }
+    public void setCreatedAt(Instant createdAt){
+        this.createdAt = createdAt;
+    }
 
     public Set<NotificationEvent> getNotificationEvents(){
         return this.notificationEvents;
     }
-
     public void setNotificationEvents(Set<NotificationEvent> notificationEvents){
         this.notificationEvents = notificationEvents;
     }
 }
-
-

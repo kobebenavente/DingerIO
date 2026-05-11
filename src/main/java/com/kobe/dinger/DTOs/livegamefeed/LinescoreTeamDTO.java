@@ -5,12 +5,24 @@ public class LinescoreTeamDTO {
     private Integer homeRuns;
     private Integer hits;
 
-    public Integer getRuns() { return runs; }
-    public void setRuns(Integer runs) { this.runs = runs; }
+    public Integer getRuns(){
+        return runs;
+    }
+    public void setRuns(Integer runs){
+        this.runs = runs;
+    }
 
-    public Integer getHomeRuns() { return homeRuns; }
-    public void setHomeRuns(Integer homeRuns) { this.homeRuns = homeRuns; }
+    public Integer getHomeRuns(){
+        return homeRuns;
+    }
+    public void setHomeRuns(Integer homeRuns){
+        this.homeRuns = homeRuns;
+    }
 
-    public Integer getHits() {return hits;}
-    public void setHits(Integer hits){this.hits = hits;}
+    public Integer getHits(){
+        return hits;
+    }
+    public void setHits(Integer hits){
+        this.hits = hits;
+    }
 }

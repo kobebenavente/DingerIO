@@ -6,9 +6,17 @@ public class PlaysDTO {
     List<AllPlaysDTO> allPlays;
     List<Integer> scoringPlays;
 
-    public List<AllPlaysDTO> getAllPlays(){return allPlays;}
-    public void setAllPlays(List<AllPlaysDTO> allPlays){this.allPlays = allPlays;}
+    public List<AllPlaysDTO> getAllPlays(){
+        return allPlays;
+    }
+    public void setAllPlays(List<AllPlaysDTO> allPlays){
+        this.allPlays = allPlays;
+    }
 
-    public List<Integer> getScoringPlays(){return scoringPlays;}
-    public void setScoringPlays(List<Integer> scoringPlays){this.scoringPlays = scoringPlays;}
+    public List<Integer> getScoringPlays(){
+        return scoringPlays;
+    }
+    public void setScoringPlays(List<Integer> scoringPlays){
+        this.scoringPlays = scoringPlays;
+    }
 }

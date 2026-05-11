@@ -20,12 +20,14 @@ public class TeamSubscription extends Subscription {
     protected TeamSubscription() {}
 
     public TeamSubscription(User user, Team team) {
-
         super(user);
         this.team = team;
-
     }
 
-    public Team getTeam() { return team; }
-    public void setTeam(Team team) { this.team = team; }
+    public Team getTeam(){
+        return team;
+    }
+    public void setTeam(Team team){
+        this.team = team;
+    }
 }

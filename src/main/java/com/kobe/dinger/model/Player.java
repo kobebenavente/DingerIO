@@ -22,15 +22,31 @@ public class Player {
 
     public Player() {}
 
-    public Integer getPlayerId() { return playerId; }
-    public void setPlayerId(Integer playerId) { this.playerId = playerId; }
+    public Integer getPlayerId(){
+        return playerId;
+    }
+    public void setPlayerId(Integer playerId){
+        this.playerId = playerId;
+    }
 
-    public Integer getMlbPlayerId() { return mlbPlayerId; }
-    public void setMlbPlayerId(Integer mlbPlayerId) { this.mlbPlayerId = mlbPlayerId; }
+    public Integer getMlbPlayerId(){
+        return mlbPlayerId;
+    }
+    public void setMlbPlayerId(Integer mlbPlayerId){
+        this.mlbPlayerId = mlbPlayerId;
+    }
 
-    public String getPlayerName() { return playerName; }
-    public void setPlayerName(String playerName) { this.playerName = playerName; }
+    public String getPlayerName(){
+        return playerName;
+    }
+    public void setPlayerName(String playerName){
+        this.playerName = playerName;
+    }
 
-    public String getPlayerImageUrl() { return playerImageUrl; }
-    public void setPlayerImageUrl(String playerImageUrl) { this.playerImageUrl = playerImageUrl; }
+    public String getPlayerImageUrl(){
+        return playerImageUrl;
+    }
+    public void setPlayerImageUrl(String playerImageUrl){
+        this.playerImageUrl = playerImageUrl;
+    }
 }

@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "team")
 public class Team {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer teamId;
@@ -26,31 +26,56 @@ public class Team {
 
     private Integer leagueId;
 
-
     public Team() {}
 
-    public Integer getTeamId() { return teamId; }
-    public void setTeamId(Integer teamId) { this.teamId = teamId; }
+    public Integer getTeamId(){
+        return teamId;
+    }
+    public void setTeamId(Integer teamId){
+        this.teamId = teamId;
+    }
 
-    public Integer getMlbTeamId() { return mlbTeamId; }
-    public void setMlbTeamId(Integer mlbTeamId) { this.mlbTeamId = mlbTeamId; }
+    public Integer getMlbTeamId(){
+        return mlbTeamId;
+    }
+    public void setMlbTeamId(Integer mlbTeamId){
+        this.mlbTeamId = mlbTeamId;
+    }
 
-    public String getTeamName() { return teamName; }
-    public void setTeamName(String teamName) { this.teamName = teamName; }
+    public String getTeamName(){
+        return teamName;
+    }
+    public void setTeamName(String teamName){
+        this.teamName = teamName;
+    }
 
-    public String getLogoImageUrl() { return logoImageUrl; }
-    public void setLogoImageUrl(String logoImageUrl) { this.logoImageUrl = logoImageUrl; }
+    public String getLogoImageUrl(){
+        return logoImageUrl;
+    }
+    public void setLogoImageUrl(String logoImageUrl){
+        this.logoImageUrl = logoImageUrl;
+    }
 
-    public String getTeamEmoji(){return teamEmoji;}
-    public void setTeamEmoji(String teamEmoji){ this.teamEmoji = teamEmoji; }
+    public String getTeamEmoji(){
+        return teamEmoji;
+    }
+    public void setTeamEmoji(String teamEmoji){
+        this.teamEmoji = teamEmoji;
+    }
 
-    public Integer getDivisionId(){ return divisionId; }
-    public void setDivisionId(Integer divisionId){ this.divisionId = divisionId;}
+    public Integer getDivisionId(){
+        return divisionId;
+    }
+    public void setDivisionId(Integer divisionId){
+        this.divisionId = divisionId;
+    }
 
-    public Integer getLeagueId(){return leagueId;}
-    public void setLeagueId(Integer leagueId){this.leagueId = leagueId;}
-
-
+    public Integer getLeagueId(){
+        return leagueId;
+    }
+    public void setLeagueId(Integer leagueId){
+        this.leagueId = leagueId;
+    }
 
     @Override
     public boolean equals(Object o) {

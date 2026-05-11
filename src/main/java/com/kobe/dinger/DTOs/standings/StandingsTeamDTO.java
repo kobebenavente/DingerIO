@@ -4,12 +4,17 @@ public class StandingsTeamDTO {
     private String name;
     private int id;
 
-    public int getId() {
+    public int getId(){
         return id;
     }
-    public void setId(int id) {
+    public void setId(int id){
         this.id = id;
     }
-    public String getName(){return name;}
-    public void setName(String name){this.name = name;}
+
+    public String getName(){
+        return name;
+    }
+    public void setName(String name){
+        this.name = name;
+    }
 }
