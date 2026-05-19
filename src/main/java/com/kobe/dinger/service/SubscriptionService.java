@@ -51,6 +51,15 @@ public class SubscriptionService {
         return teamSubscription;
     }
 
+    public void changeTeamSubscription(Integer teamId){
+        Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team does not exist"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
+        TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
+        subscription.setTeam(team);        
+        teamSubscriptionRepository.save(subscription);
+    }
+
 
     public void addSubscriptionEvent(NotificationEvent eventType){
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -59,5 +68,14 @@ public class SubscriptionService {
 
         subscription.getNotificationEvents().add(eventType);
         teamSubscriptionRepository.save(subscription);
+    }
+
+    public void removeSubscriptionEvent(NotificationEvent eventType){
+        Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
+        TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
+
+        subscription.getNotificationEvents().remove(eventType);
+        teamSubscriptionRepository.save(subscription);        
     }
 }

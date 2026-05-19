@@ -10,6 +10,8 @@ import com.kobe.dinger.service.SubscriptionService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -35,6 +37,16 @@ public class SubscriptionController {
         }
     }
 
+    @PatchMapping("/change")
+    public ResponseEntity<?> changeTeamSubscription(@RequestBody SubscriptionRequest request){
+        try{
+            subscriptionService.changeTeamSubscription(request.getTeamId());
+            return ResponseEntity.ok("Team change successful");
+        } catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     @PostMapping("/add-event")
     public ResponseEntity<?> addSubscriptionEvent(@RequestBody SubscriptionEventRequest request) {
         try{
@@ -45,6 +57,17 @@ public class SubscriptionController {
         } catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
 
+    @DeleteMapping("/remove-event")
+    public ResponseEntity<?> removeSubscriptionEvent(@RequestBody SubscriptionEventRequest request) {
+        try{
+            for(NotificationEvent eventType : request.getNotificationEvents()){
+                subscriptionService.removeSubscriptionEvent(eventType);
+            }
+            return ResponseEntity.ok("Subscription event(s) removed successfully.");
+        } catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }        
     }
 }
