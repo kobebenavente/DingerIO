@@ -72,12 +72,15 @@ public class SubscriptionService {
     public UserSubscriptionResponse getUserSubscriptionInfo(){
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
-        TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
+        TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElse(null);
         UserSubscriptionResponse userSubscriptionResponse = new UserSubscriptionResponse();
 
-        userSubscriptionResponse.setSubbedEvents(subscription.getNotificationEvents());
-        userSubscriptionResponse.setTeamName(subscription.getTeam().getTeamName());
-        userSubscriptionResponse.setTeamId(subscription.getTeam().getTeamId());
+        if(subscription != null){
+            userSubscriptionResponse.setSubbedEvents(subscription.getNotificationEvents());
+            userSubscriptionResponse.setTeamName(subscription.getTeam().getTeamName());
+            userSubscriptionResponse.setTeamId(subscription.getTeam().getTeamId());
+            userSubscriptionResponse.setMlbTeamId(subscription.getTeam().getMlbTeamId());
+        }
 
         return userSubscriptionResponse;
     }

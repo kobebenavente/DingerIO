@@ -7,3 +7,7 @@
 body {
     background-color: #737373;
 }
+
+input::placeholder {
+    color: #cccccc;
+}

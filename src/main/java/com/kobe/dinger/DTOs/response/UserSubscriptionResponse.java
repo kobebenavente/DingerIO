@@ -9,6 +9,7 @@ public class UserSubscriptionResponse {
     private Set<NotificationEvent> subbedEvents;
     private String teamName;
     private Integer teamId;
+    private Integer mlbTeamId;
 
 
     public Set<NotificationEvent> getSubbedEvents() {
@@ -28,6 +29,12 @@ public class UserSubscriptionResponse {
     }
     public void setTeamId(Integer teamId) {
         this.teamId = teamId;
+    }
+    public Integer getMlbTeamId() {
+        return mlbTeamId;
+    }
+    public void setMlbTeamId(Integer mlbTeamId) {
+        this.mlbTeamId = mlbTeamId;
     }
 
 

@@ -2,9 +2,17 @@ package com.kobe.dinger.DTOs.response;
 
 public class TeamResponse {
 
+    private Integer teamId;
     private Integer mlbTeamId;
     private String teamName;
     private String logoImageUrl;
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
+    }
 
     public Integer getMlbTeamId() {
         return mlbTeamId;

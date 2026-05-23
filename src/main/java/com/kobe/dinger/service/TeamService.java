@@ -23,6 +23,7 @@ public class TeamService {
         List<TeamResponse> response = new ArrayList<>();
         for (Team team : teams) {
             TeamResponse dto = new TeamResponse();
+            dto.setTeamId(team.getTeamId());
             dto.setMlbTeamId(team.getMlbTeamId());
             dto.setTeamName(team.getTeamName());
             dto.setLogoImageUrl(team.getLogoImageUrl());
