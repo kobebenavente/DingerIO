@@ -17,9 +17,9 @@ const styles = {
     swingImage: {
         position: 'absolute',
         width: '110px',
-        opacity: 0.6,
+        opacity: 0.9,
         pointerEvents: 'none',
-        top: '-60px',
+        top: '-92px',
     },
     title: {
         fontSize: '3rem',
