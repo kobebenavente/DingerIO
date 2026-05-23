@@ -37,10 +37,10 @@ const LIVE_EVENTS = [
 function CheckItem({ label, checked, onToggle }) {
     return (
         <div style={checkItemStyle} onClick={onToggle}>
-            <div style={{ position: 'relative', width: '15px', height: '15px', flexShrink: 0 }}>
-                <div style={{ width: '15px', height: '15px', borderRadius: '3px', border: '2px solid #000000' }} />
+            <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
+                <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: '2px solid #000000' }} />
                 {checked && (
-                    <img src="/mark.png" style={{ position: 'absolute', top: '-6px', left: '-2px', width: '23px', height: '23px' }} />
+                    <img src="/mark.png" style={{ position: 'absolute', top: '-7px', left: '-3px', width: '28px', height: '28px' }} />
                 )}
             </div>
             <span style={checkLabelStyle}>{label}</span>
@@ -128,53 +128,55 @@ function EventsPage({ setPage }) {
     }
 
 return (
-        <div style={pageStyle}>
-            <div style={{ ...styles.logoWrapper, marginBottom: '1.5rem' }}>
-                {mlbTeamId && (
-                    <img src={`/logos/${mlbTeamId}.png`} alt="" style={teamLogoStyle} />
-                )}
-                <h1 style={styles.title}>DingerIO</h1>
-            </div>
-            <div style={dashboardStyle}>
-                <img src="/settings.png" alt="settings" style={settingsIconStyle} onClick={() => setPage('settings')} />
+    <div style={pageStyle}>
+        <div style={{ ...styles.logoWrapper, marginBottom: '1.5rem' }}>
+            {mlbTeamId && (
+                <img src={`/logos/${mlbTeamId}.png`} alt="" style={teamLogoStyle} />
+            )}
+            <h1 style={{ ...styles.title, bottom: '10px', textShadow: '0 4px 20px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5)' }}>DingerIO</h1>
+        </div>
+        <div style={dashboardStyle}>
+            <img src="/settings.png" alt="settings" style={settingsIconStyle} onClick={() => setPage('settings')} />
+            <div style={panelStyle}>
                 <div style={topRowStyle}>
-                        {TOP_SECTIONS.map(section => (
-                            <div key={section.title} style={{ ...sectionCardStyle, flex: 1 }}>
-                                <p style={sectionTitleStyle}>{section.title}</p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                    {section.events.map(event => (
-                                        <CheckItem
-                                            key={event.key}
-                                            label={event.label}
-                                            checked={selected.has(event.key)}
-                                            onToggle={() => toggle(event.key)}
-                                        />
-                                    ))}
-                                </div>
+                    {TOP_SECTIONS.map(section => (
+                        <div key={section.title} style={{ ...sectionCardStyle, flex: 1 }}>
+                            <p style={sectionTitleStyle}>{section.title}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                {section.events.map(event => (
+                                    <CheckItem
+                                        key={event.key}
+                                        label={event.label}
+                                        checked={selected.has(event.key)}
+                                        onToggle={() => toggle(event.key)}
+                                    />
+                                ))}
                             </div>
+                        </div>
+                    ))}
+                </div>
+                <div style={sectionCardStyle}>
+                    <p style={sectionTitleStyle}>Live Game Updates</p>
+                    <div style={liveGridStyle}>
+                        {LIVE_EVENTS.map(event => (
+                            <CheckItem
+                                key={event.key}
+                                label={event.label}
+                                checked={selected.has(event.key)}
+                                onToggle={() => toggle(event.key)}
+                            />
                         ))}
                     </div>
-                    <div style={sectionCardStyle}>
-                        <p style={sectionTitleStyle}>Live Game Updates</p>
-                        <div style={liveGridStyle}>
-                            {LIVE_EVENTS.map(event => (
-                                <CheckItem
-                                    key={event.key}
-                                    label={event.label}
-                                    checked={selected.has(event.key)}
-                                    onToggle={() => toggle(event.key)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                        <button style={styles.button} onClick={handleSave}>Save</button>
-                        {saved && <span style={successTextStyle}>Saved!</span>}
-                        {error && <span style={styles.errorText}>{error}</span>}
-                    </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    <button style={styles.button} onClick={handleSave}>Save</button>
+                    {saved && <span style={successTextStyle}>Saved!</span>}
+                    {error && <span style={styles.errorText}>{error}</span>}
                 </div>
             </div>
-    )
+        </div>
+    </div>
+)
 }
 
 const pageStyle = {
@@ -201,49 +203,61 @@ const contentWrapperStyle = {
 
 const settingsIconStyle = {
     position: 'absolute',
-    top: '-42px',
+    top: '-48px',
     right: 0,
-    width: '32px',
-    height: '32px',
+    width: '40px',
+    height: '40px',
     cursor: 'pointer',
     opacity: 0.8,
 }
 
 const teamLogoStyle = {
     position: 'absolute',
-    width: '110px',
-    height: '110px',
+    width: '135px',
+    height: '135px',
     objectFit: 'contain',
     opacity: 0.7,
     pointerEvents: 'none',
+    bottom: '-10px'
 }
 
 const dashboardStyle = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '1.25rem',
     width: '100%',
-    maxWidth: '700px',
+    maxWidth: '850px',
+}
+
+const panelStyle = {
+    position: 'relative',
+    backgroundColor: '#545454',
+    borderRadius: '12px',
+    padding: '1.75rem 1.25rem 1.25rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.25rem',
+    width: '100%',
 }
 
 const topRowStyle = {
     display: 'flex',
-    gap: '1rem',
+    gap: '1.25rem',
 }
 
 const sectionCardStyle = {
     backgroundColor: '#868686',
     borderRadius: '10px',
-    padding: '1rem 1.25rem',
+    padding: '1.25rem 1.5rem',
 }
 
 const sectionTitleStyle = {
-    fontSize: '1.2rem',
+    fontSize: '1.4rem',
     fontWeight: '700',
     color: '#ffffff',
     fontFamily: "'Parkinsans', sans-serif",
-    marginBottom: '0.75rem',
+    marginBottom: '0.9rem',
     textAlign: 'center',
     textShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
 }
@@ -251,26 +265,26 @@ const sectionTitleStyle = {
 const liveGridStyle = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '0.6rem 1rem',
+    gap: '0.75rem 1.25rem',
 }
 
 const checkItemStyle = {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    gap: '0.6rem',
     cursor: 'pointer',
 }
 
 const checkLabelStyle = {
     color: '#ffffff',
-    fontSize: '0.82rem',
+    fontSize: '0.98rem',
     fontWeight: '600',
     fontFamily: "'Quicksand', sans-serif",
 }
 
 const successTextStyle = {
     color: '#6ddb6d',
-    fontSize: '0.85rem',
+    fontSize: '1rem',
     fontWeight: '600',
     fontFamily: "'Quicksand', sans-serif",
 }
