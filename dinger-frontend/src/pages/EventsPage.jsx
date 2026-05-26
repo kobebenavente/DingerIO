@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import styles from '../styles'
+import infoIcon from '../assets/info.png'
 
 const TOP_SECTIONS = [
     {
@@ -22,19 +23,66 @@ const TOP_SECTIONS = [
 const LIVE_EVENTS = [
     { key: 'SCORE_CHANGE', label: 'Score Change' },
     { key: 'HOMERUN', label: 'Home Run' },
-    { key: 'HIT', label: 'Hit' },
     { key: 'INNING_CHANGE', label: 'Inning Change' },
     { key: 'HALF_INNING_CHANGE', label: 'Half Inning Change' },
+    { key: 'STARTING_PITCHER', label: 'Starting Pitchers' },
     { key: 'PITCHER_CHANGE', label: 'Pitcher Change' },
-    { key: 'STARTING_PITCHER', label: 'Starting Pitcher' },
-    { key: 'PROBABLE_PITCHER', label: 'Probable Pitcher' },
     { key: 'END_INNING_PITCHER_STATS', label: 'End Inning Pitcher Stats' },
-    { key: 'GAMES_BEHIND_FIRST', label: 'Games Behind First' },
-    { key: 'GAME_BEHIND_WILDCARD', label: 'Games Behind Wildcard' },
-    { key: 'END_DAY_STANDINGS', label: 'End of Day Standings' },
 ]
 
-function CheckItem({ label, checked, onToggle }) {
+const EVENT_PREVIEWS = {
+    WEEKLY_SCHEDULE: {
+        title: 'Weekly Schedule',
+        description: "Sent every Monday with your team's games for the week.",
+    },
+    GAME_DAY_REMINDER: {
+        title: 'Game Day Reminder',
+        description: 'Sent on the morning of every game day.',
+    },
+    GAME_STARTING: {
+        title: 'Game Starting',
+        description: 'Sent a few minutes before the first inning begins.',
+    },
+    END_GAME_STANDINGS: {
+        title: 'Division Standings',
+        description: `Sent after each game with updated division standings. Includes games behind for first in division
+        and games behind for a wildcard spot.`,
+    },
+    GAME_END: {
+        title: 'Game Ended + Final Score',
+        description: 'Sent when the game ends with the final score.',
+    },
+    SCORE_CHANGE: {
+        title: 'Score Change',
+        description: 'Sent whenever the score changes during a live game.',
+    },
+    HOMERUN: {
+        title: 'Home Run',
+        description: 'Sent when a player hits a home run.',
+    },
+    INNING_CHANGE: {
+        title: 'Inning Change',
+        description: `Sent at the start of each new inning. Includes the score.`,
+    },
+    HALF_INNING_CHANGE: {
+        title: 'Half Inning Change',
+        description: 'Sent at every half-inning (top and bottom). Includes the score.',
+    },
+    STARTING_PITCHER: {
+        title: 'Starting Pitchers',
+        description: 'Sent at the start of every game (includes starting pitcher for other team).',
+    },
+    PITCHER_CHANGE: {
+        title: 'Pitcher Change',
+        description: 'Sent when a new pitcher enters the game.',
+    },
+    END_INNING_PITCHER_STATS: {
+        title: 'End Inning Pitcher Stats',
+        description: "Sent at the end of each inning with the pitcher's current stats.",
+    },
+}
+
+function CheckItem({ label, checked, onToggle, onInfo }) {
     return (
         <div style={checkItemStyle} onClick={onToggle}>
             <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
@@ -43,7 +91,29 @@ function CheckItem({ label, checked, onToggle }) {
                     <img src="/mark.png" style={{ position: 'absolute', top: '-7px', left: '-3px', width: '28px', height: '28px' }} />
                 )}
             </div>
-            <span style={checkLabelStyle}>{label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={checkLabelStyle}>{label}</span>
+                <img
+                    src={infoIcon}
+                    style={infoIconStyle}
+                    onClick={(e) => { e.stopPropagation(); onInfo() }}
+                />
+            </div>
+        </div>
+    )
+}
+
+function InfoModal({ eventKey, onClose }) {
+    const preview = EVENT_PREVIEWS[eventKey]
+    return (
+        <div style={modalOverlayStyle} onClick={onClose}>
+            <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
+                <div style={modalHeaderStyle}>
+                    <span style={modalTitleStyle}>{preview.title}</span>
+                    <span style={modalCloseStyle} onClick={onClose}>✕</span>
+                </div>
+                <p style={modalDescStyle}>{preview.description}</p>
+            </div>
         </div>
     )
 }
@@ -54,6 +124,7 @@ function EventsPage({ setPage }) {
     const [mlbTeamId, setMlbTeamId] = useState(null)
     const [saved, setSaved] = useState(false)
     const [error, setError] = useState('')
+    const [infoEvent, setInfoEvent] = useState(null)
 
     useEffect(() => {
         const loadSubscription = async () => {
@@ -149,6 +220,7 @@ return (
                                         label={event.label}
                                         checked={selected.has(event.key)}
                                         onToggle={() => toggle(event.key)}
+                                        onInfo={() => setInfoEvent(event.key)}
                                     />
                                 ))}
                             </div>
@@ -164,6 +236,7 @@ return (
                                 label={event.label}
                                 checked={selected.has(event.key)}
                                 onToggle={() => toggle(event.key)}
+                                onInfo={() => setInfoEvent(event.key)}
                             />
                         ))}
                     </div>
@@ -175,6 +248,7 @@ return (
                 </div>
             </div>
         </div>
+        {infoEvent && <InfoModal eventKey={infoEvent} onClose={() => setInfoEvent(null)} />}
     </div>
 )
 }
@@ -264,7 +338,8 @@ const sectionTitleStyle = {
 
 const liveGridStyle = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateRows: 'repeat(3, auto)',
+    gridAutoFlow: 'column',
     gap: '0.75rem 1.25rem',
 }
 
@@ -287,6 +362,111 @@ const successTextStyle = {
     fontSize: '1rem',
     fontWeight: '600',
     fontFamily: "'Quicksand', sans-serif",
+}
+
+const infoIconStyle = {
+    width: '18px',
+    height: '18px',
+    opacity: 0.6,
+    cursor: 'pointer',
+    flexShrink: 0,
+}
+
+const modalOverlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+}
+
+const modalCardStyle = {
+    backgroundColor: '#3a3a3a',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    width: '340px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+}
+
+const modalHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+}
+
+const modalTitleStyle = {
+    fontSize: '1.1rem',
+    fontWeight: '700',
+    color: '#ffffff',
+    fontFamily: "'Parkinsans', sans-serif",
+}
+
+const modalCloseStyle = {
+    color: '#aaaaaa',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '600',
+}
+
+const modalDescStyle = {
+    color: '#cccccc',
+    fontSize: '0.85rem',
+    fontFamily: "'Quicksand', sans-serif",
+    fontWeight: '600',
+    margin: 0,
+}
+
+const modalPreviewLabelStyle = {
+    color: '#aaaaaa',
+    fontSize: '0.72rem',
+    fontFamily: "'Quicksand', sans-serif",
+    fontWeight: '600',
+    margin: 0,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+}
+
+const discordEmbedStyle = {
+    backgroundColor: '#2f3136',
+    borderRadius: '4px',
+    display: 'flex',
+    overflow: 'hidden',
+}
+
+const embedBorderStyle = {
+    width: '4px',
+    backgroundColor: '#5865f2',
+    flexShrink: 0,
+}
+
+const embedContentStyle = {
+    padding: '0.6rem 0.75rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+}
+
+const embedTitleStyle = {
+    color: '#ffffff',
+    fontSize: '0.9rem',
+    fontWeight: '700',
+    fontFamily: "'Quicksand', sans-serif",
+    margin: 0,
+}
+
+const embedBodyStyle = {
+    color: '#dcddde',
+    fontSize: '0.82rem',
+    fontFamily: "'Quicksand', sans-serif",
+    margin: 0,
+    whiteSpace: 'pre-line',
 }
 
 export default EventsPage
