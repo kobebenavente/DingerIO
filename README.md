@@ -2,10 +2,13 @@
 ## Summary
 DingerIO is a passion project I developed to help users stay up to date with Major League Baseball games. Since each team in the MLB plays 162 games in a season, it can be difficult to consistently keep track of how your team is performing. As someone who has recently started getting more into baseball, I often find myself checking my team’s standings, playoff positioning, and how certain players are performing throughout the season. DingerIO helps to eliminate the tedious work of constantly looking up stats and results by serving real-time updates straight to a user's Discord server via webhook.
 
-![Scoring_Notification_Screenshot](docs/scoring_notification.png)
+![Scoring_Notification_Screenshot](docs/scoring_screenshot.png)
 
 
 One of the main features of DingerIO is personalization. Fans care more about different parts of the game than others, so I designed the application to allow users to customize exactly which notifications they want to receive. Through a simple frontend dashboard, users can toggle different notification events on or off. For example, someone may only want notifications when a game starts and ends along with the final score, while another user may want updates about standings and playoff positioning after every game. Users can mix and match notification events to create a personalized experience centered around the aspects of baseball they care about most.
+
+![Standings_Screenshot](docs/standings_message.png)
+
 
 ### Team Selection Menu
 ![Team_Picker_Screenshot](docs/teampicker.png)
