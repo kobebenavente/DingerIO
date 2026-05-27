@@ -4,6 +4,10 @@ DingerIO is a passion project I developed to help me (and eventually others once
 
 One of the main features of DingerIO is personalization. Fans care more about different parts of the game than others, so I designed the application to allow users to customize exactly which notifications they want to receive. Through a simple frontend dashboard, users can toggle different notification events on or off. For example, someone may only want notifications when a game starts and ends along with the final score, while another user may want updates about standings and playoff positioning after every game. Users can mix and match notification events to create a personalized experience centered around the aspects of baseball they care about most.
 
+### Team Selection Menu
+![Team_Picker_Screenshot](docs/teampicker.png)
+
+### Notification Selection Dashboard
 ![Dashboard Screenshot](docs/dashboard.png)
 
 ---
