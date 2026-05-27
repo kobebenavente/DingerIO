@@ -19,9 +19,8 @@ public class NotificationService {
         if (webhookUrl == null || webhookUrl.isBlank()) {
             return;
         }
-
-        String teamName = subscription.getTeam().getTeamName();
-        postToDiscord(webhookUrl, teamName + " — " + message);
+        
+        postToDiscord(webhookUrl, message);
     }
 
     private void postToDiscord(String webhookUrl, String message) {

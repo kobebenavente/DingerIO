@@ -70,15 +70,19 @@ public class PreGameService{
 
                 long minutesUntilGame = ChronoUnit.MINUTES.between(now, gameTime);
 
-                if (minutesUntilGame <= 60 && minutesUntilGame > 57 ) {
+                    if (minutesUntilGame <= 180 && minutesUntilGame > 60) {
                     StringBuilder stringToSend = new StringBuilder();
 
+                    java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter.ofPattern("h:mm a");
+                    String pst = gameTime.withZoneSameInstant(ZoneId.of("America/Los_Angeles")).format(timeFormatter) + " PST";
+                    String est = gameTime.withZoneSameInstant(ZoneId.of("America/New_York")).format(timeFormatter) + " EST";
+
                     if(subbedTeamIsHomeTeam){
-                        stringToSend.append(sub.getTeam().getTeamName() + " vs " + awayTeam.getTeamName()
-                        + " starts in one hour!");
+                        stringToSend.append(sub.getTeam().getTeamName() + " play the " + awayTeam.getTeamName()
+                        + " today at " + pst + " / " + est);
                     } else {
-                        stringToSend.append(sub.getTeam().getTeamName() + " vs " + homeTeam.getTeamName()
-                        + " starts in one hour!");
+                        stringToSend.append(sub.getTeam().getTeamName() + " play the " + homeTeam.getTeamName()
+                        + " today at " + pst + " / " + est);
                     }
 
                     gameState.setGameStartingSoonNotificationSent(true);

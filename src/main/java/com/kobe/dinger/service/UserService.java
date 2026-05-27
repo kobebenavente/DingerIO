@@ -58,7 +58,7 @@ public class UserService implements UserDetailsService {
     public void addDiscordWebhook(String webhook){
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
-        user.setDiscordWebhookUrl(webhook);
+        user.setDiscordWebhookUrl(webhook.replaceAll("^\"|\"$", ""));
         userRepository.save(user);
     }
 

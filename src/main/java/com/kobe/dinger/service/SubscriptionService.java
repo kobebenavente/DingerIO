@@ -75,6 +75,8 @@ public class SubscriptionService {
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElse(null);
         UserSubscriptionResponse userSubscriptionResponse = new UserSubscriptionResponse();
 
+        userSubscriptionResponse.setDiscordWebhookUrl(user.getDiscordWebhookUrl());
+
         if(subscription != null){
             userSubscriptionResponse.setSubbedEvents(subscription.getNotificationEvents());
             userSubscriptionResponse.setTeamName(subscription.getTeam().getTeamName());

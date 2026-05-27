@@ -10,6 +10,7 @@ public class UserSubscriptionResponse {
     private String teamName;
     private Integer teamId;
     private Integer mlbTeamId;
+    private String discordWebhookUrl;
 
 
     public Set<NotificationEvent> getSubbedEvents() {
@@ -35,6 +36,12 @@ public class UserSubscriptionResponse {
     }
     public void setMlbTeamId(Integer mlbTeamId) {
         this.mlbTeamId = mlbTeamId;
+    }
+    public String getDiscordWebhookUrl() {
+        return discordWebhookUrl;
+    }
+    public void setDiscordWebhookUrl(String discordWebhookUrl) {
+        this.discordWebhookUrl = discordWebhookUrl;
     }
 
 
