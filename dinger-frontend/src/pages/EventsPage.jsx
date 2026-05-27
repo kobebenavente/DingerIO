@@ -37,7 +37,7 @@ const EVENT_PREVIEWS = {
     },
     GAME_DAY_REMINDER: {
         title: 'Game Day Reminder',
-        description: 'Sent on the morning of every game day.',
+        description: 'Sent 2-3 hours before game starts.',
     },
     GAME_STARTING: {
         title: 'Game Starting',
@@ -125,6 +125,8 @@ function EventsPage({ setPage }) {
     const [saved, setSaved] = useState(false)
     const [error, setError] = useState('')
     const [infoEvent, setInfoEvent] = useState(null)
+    const [webhook, setWebhook] = useState('')
+    const [originalWebhook, setOriginalWebhook] = useState('')
 
     useEffect(() => {
         const loadSubscription = async () => {
@@ -137,6 +139,8 @@ function EventsPage({ setPage }) {
             setSelected(events)
             setOriginal(events)
             setMlbTeamId(data.mlbTeamId)
+            setWebhook(data.discordWebhookUrl || '')
+            setOriginalWebhook(data.discordWebhookUrl || '')
         }
         loadSubscription()
     }, [])
@@ -194,17 +198,39 @@ function EventsPage({ setPage }) {
             }
         }
 
+        if (webhook !== originalWebhook) {
+            const res = await fetch('http://localhost:8080/api/auth/discord-webhook', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(webhook)
+            })
+            if (!res.ok) {
+                setError('Failed to save webhook.')
+                return
+            }
+            setOriginalWebhook(webhook)
+        }
+
         setOriginal(new Set(selected))
         setSaved(true)
     }
 
 return (
     <div style={pageStyle}>
-        <div style={{ ...styles.logoWrapper, marginBottom: '1.5rem' }}>
+        <div style={{ ...styles.logoWrapper, marginBottom: '0.75rem' }}>
             {mlbTeamId && (
                 <img src={`/logos/${mlbTeamId}.png`} alt="" style={teamLogoStyle} />
             )}
             <h1 style={{ ...styles.title, bottom: '10px', textShadow: '0 4px 20px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5)' }}>DingerIO</h1>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem' }}>
+            <span style={webhookLabelStyle}>Discord Webhook URL</span>
+            <input
+                style={{ ...styles.input, width: '320px', backgroundColor: '#626262' }}
+                type="text"
+                value={webhook}
+                onChange={(e) => setWebhook(e.target.value)}
+            />
         </div>
         <div style={dashboardStyle}>
             <img src="/settings.png" alt="settings" style={settingsIconStyle} onClick={() => setPage('settings')} />
@@ -360,6 +386,13 @@ const checkLabelStyle = {
 const successTextStyle = {
     color: '#6ddb6d',
     fontSize: '1rem',
+    fontWeight: '600',
+    fontFamily: "'Quicksand', sans-serif",
+}
+
+const webhookLabelStyle = {
+    color: '#dddddd',
+    fontSize: '0.8rem',
     fontWeight: '600',
     fontFamily: "'Quicksand', sans-serif",
 }

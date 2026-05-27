@@ -1,33 +1,6 @@
-import { useState } from 'react'
 import styles from '../styles'
 
 function SettingsPage({ setPage, setIsLoggedIn }) {
-    const [webhook, setWebhook] = useState('')
-    const [webhookSaved, setWebhookSaved] = useState(false)
-    const [webhookError, setWebhookError] = useState('')
-    const [showWebhook, setShowWebhook] = useState(false)
-
-    const handleToggleWebhook = () => {
-        setShowWebhook(!showWebhook)
-        setWebhookSaved(false)
-        setWebhookError('')
-    }
-
-    const handleSaveWebhook = async () => {
-        setWebhookError('')
-        setWebhookSaved(false)
-        const token = localStorage.getItem('token')
-        const response = await fetch('http://localhost:8080/api/auth/discord-webhook', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(webhook)
-        })
-        if (response.ok) {
-            setWebhookSaved(true)
-        } else {
-            setWebhookError('Failed to save webhook.')
-        }
-    }
 
     const handleLogout = () => {
         localStorage.removeItem('token')
@@ -41,27 +14,6 @@ function SettingsPage({ setPage, setIsLoggedIn }) {
                 <h1 style={styles.title}>Settings</h1>
             </div>
             <div style={cardGroupStyle}>
-
-                <div style={settingsCardStyle}>
-                    <div style={rowStyle} onClick={handleToggleWebhook}>
-                        <span style={rowLabelStyle}>Change Discord Webhook</span>
-                        <span style={chevronStyle}>{showWebhook ? '▲' : '▼'}</span>
-                    </div>
-                    {showWebhook && (
-                        <div style={webhookExpandStyle}>
-                            <input
-                                style={styles.input}
-                                type="text"
-                                placeholder="Paste webhook URL"
-                                value={webhook}
-                                onChange={e => setWebhook(e.target.value)}
-                            />
-                            <button style={styles.button} onClick={handleSaveWebhook}>Save</button>
-                            {webhookSaved && <span style={successStyle}>Saved!</span>}
-                            {webhookError && <span style={styles.errorText}>{webhookError}</span>}
-                        </div>
-                    )}
-                </div>
 
                 <div style={settingsCardStyle}>
                     <div style={rowStyle} onClick={() => setPage('team-picker-change')}>
@@ -121,20 +73,6 @@ const chevronStyle = {
     color: '#ffffff',
     fontSize: '0.85rem',
     textShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
-}
-
-const webhookExpandStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.6rem',
-    marginTop: '0.75rem',
-}
-
-const successStyle = {
-    color: '#6ddb6d',
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    fontFamily: "'Quicksand', sans-serif",
 }
 
 const backLinkStyle = {
