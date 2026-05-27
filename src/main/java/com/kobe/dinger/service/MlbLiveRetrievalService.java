@@ -177,9 +177,9 @@ public class MlbLiveRetrievalService {
 
         if(homeRunScored){
             if(subbedTeamIsHomeTeam && homeTeamScored){
-                scoringMessage = "💥 HOME RUN! 💥\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);                 
+                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);                 
             } else if(!subbedTeamIsHomeTeam && awayTeamScored){
-                scoringMessage = "💥 HOME RUN! 💥\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);          
+                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);          
             } else {
                 scoringMessage = scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, latestHomeScore, latestAwayScore, homeTeam, awayTeam);
             } 
