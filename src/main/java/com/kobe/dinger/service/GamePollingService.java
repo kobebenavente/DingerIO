@@ -94,7 +94,7 @@ public class GamePollingService {
         }
     }
 
-    @Scheduled(fixedRate = 15000)
+    @Scheduled(cron = "*/15 * 7-23,0 * * *", zone = "America/Los_Angeles")
     public void pollGames(){
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + today;
@@ -139,9 +139,12 @@ public class GamePollingService {
                     }
                 } else if("In Progress".equals(game.getStatus().getDetailedState())){ 
                     if(!lastGameState.containsKey(game.getGamePk())){
-                    lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
+                        lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
                     }
-                    
+
+                    // If the win/loss record for both teams hasn't been set yet in the game snapshot, set it.
+                    // This needs to be done so that when the game eventually ends, we can detect when the standings have been changed by 
+                    // comparing old record with new. Otherwise, pre-mature standings updates might be sent. 
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
                         GameState gs = lastGameState.get(game.getGamePk());
                         gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
@@ -154,9 +157,9 @@ public class GamePollingService {
 
                 } else {
                     if(!lastGameState.containsKey(game.getGamePk())){
-                    lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
+                        lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
                     }
-                    
+        
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
                         GameState gs = lastGameState.get(game.getGamePk());
                         gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
