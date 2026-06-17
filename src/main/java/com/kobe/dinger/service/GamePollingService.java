@@ -40,6 +40,7 @@ public class GamePollingService {
     private GameEndService gameEndService;
     private RestTemplate restTemplate = new RestTemplate();
     private Map<Integer, GameState> lastGameState = new ConcurrentHashMap<>();
+    private ExecutorService executor = Executors.newFixedThreadPool(15);
 
     public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, MlbLiveRetrievalService mlbLiveRetrievalService,
         NotificationService notificationService, PreGameService preGameService, GameEndService gameEndService
@@ -111,8 +112,6 @@ public class GamePollingService {
         List<GameDTO> games = schedule.getDates().getFirst().getGames();
         log.info("Found {} games today", games.size());
 
-        ExecutorService executor = Executors.newFixedThreadPool(15);
-
         for (GameDTO game : games) {
 
             executor.submit(() -> {
@@ -172,6 +171,5 @@ public class GamePollingService {
                 }
             });
         }
-        executor.shutdown();
     }
 }
