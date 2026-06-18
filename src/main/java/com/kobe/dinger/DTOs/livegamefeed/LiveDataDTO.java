@@ -3,13 +3,13 @@ package com.kobe.dinger.DTOs.livegamefeed;
 public class LiveDataDTO {
     private LinescoreDTO linescore;
     private PlaysDTO plays;
-    private BoxScoreDTO boxScore;
+    private BoxScoreDTO boxscore;
 
-    public BoxScoreDTO getBoxScore() {
-        return boxScore;
+    public BoxScoreDTO getBoxscore() {
+        return boxscore;
     }
-    public void setBoxScore(BoxScoreDTO boxScore) {
-        this.boxScore = boxScore;
+    public void setBoxscore(BoxScoreDTO boxscore) {
+        this.boxscore = boxscore;
     }
     public LinescoreDTO getLinescore(){
         return linescore;

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,6 +22,7 @@ import com.kobe.dinger.model.TeamSubscription;
 public class MlbLiveRetrievalService {
     private RestTemplate restTemplate = new RestTemplate();
     private NotificationService notificationService;
+    private static final Logger log = LoggerFactory.getLogger(MlbLiveRetrievalService.class);
 
     public MlbLiveRetrievalService(NotificationService notificationService) {
         this.notificationService = notificationService;
@@ -30,13 +33,15 @@ public class MlbLiveRetrievalService {
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
 
         if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null
-            || feed.getLiveData().getBoxScore() == null
-            || feed.getLiveData().getBoxScore().getTeams() == null) {
+            || feed.getLiveData().getBoxscore() == null
+            || feed.getLiveData().getBoxscore().getTeams() == null) {
+            log.error("Null detected in endpoint response for live data");
             return;
         }
 
         LinescoreDTO linescore = feed.getLiveData().getLinescore();
         if (linescore.getCurrentInning() == null || linescore.getTeams() == null) {
+            log.error("Null detected in endpoint response for live data");
             return;
         }
 
@@ -54,9 +59,10 @@ public class MlbLiveRetrievalService {
         GameState previous = lastGameState.get(gamePk);
 
         // If game state was not initialized before processGame() was called, then the application was 
-        // started mid-game. Set as initialized, update the current game snapshot, and return.
+        // started mid-game or this team did not have subscribed users until mid-game. Set as initialized, 
+        // update the current game snapshot, and return.
         // Not doing this could result in notification flooding since game snapshots start as empty
-        // and several events may have occurred since the app was relaunched.
+        // and several events may have occurred.
         if (!previous.isLiveGameInitialized()) {
             previous.setLiveGameInitialized(true);
             previous.setScoringPlays(scoringPlays);
@@ -154,14 +160,14 @@ public class MlbLiveRetrievalService {
                             pitcherId = previous.getCurrentHomePitcherId();
                             pitcherName = previous.getCurrentHomePitcher();
                             if(pitcherId != null){
-                                summary = feed.getLiveData().getBoxScore().getTeams().getHome().getPlayers()
+                                summary = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers()
                                     .get(pitcherId).getStats().getPitching().getSummary();
                             }
                         } else {
                             pitcherId = previous.getCurrentAwayPitcherId();
                             pitcherName = previous.getCurrentAwayPitcher();
                             if(pitcherId != null){
-                                summary = feed.getLiveData().getBoxScore().getTeams().getAway().getPlayers()
+                                summary = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
                                     .get(pitcherId).getStats().getPitching().getSummary();
                             }
                         }
