@@ -24,9 +24,25 @@ public class GameState {
     private String awayStartingPitcher;
     private String currentHomePitcher;
     private String currentAwayPitcher;
+    private String currentHomePitcherId;
+    private String currentAwayPitcherId;
 
 
+    public String getCurrentHomePitcherId() {
+        return currentHomePitcherId;
+    }
 
+    public void setCurrentHomePitcherId(String currentHomePitcherId) {
+        this.currentHomePitcherId = currentHomePitcherId;
+    }
+
+    public String getCurrentAwayPitcherId() {
+        return currentAwayPitcherId;
+    }
+
+    public void setCurrentAwayPitcherId(String currentAwayPitcherId) {
+        this.currentAwayPitcherId = currentAwayPitcherId;
+    }
 
     public String getCurrentHomePitcher() {
         return currentHomePitcher;

@@ -29,7 +29,9 @@ public class MlbLiveRetrievalService {
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
 
-        if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null) {
+        if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null
+            || feed.getLiveData().getBoxScore() == null
+            || feed.getLiveData().getBoxScore().getTeams() == null) {
             return;
         }
 
@@ -67,7 +69,9 @@ public class MlbLiveRetrievalService {
         if (("Pre-Game".equals(previous.getDetailedState()) || "Warmup".equals(previous.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
             isStartOfGame = true;
             previous.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());
+            previous.setCurrentHomePitcherId("ID" + feed.getGameData().getProbablePitchers().getHome().getId());
             previous.setCurrentAwayPitcher(feed.getGameData().getProbablePitchers().getAway().getFullName());
+            previous.setCurrentAwayPitcherId("ID" + feed.getGameData().getProbablePitchers().getAway().getId());
             previous.setDetailedState("In Progress");
         }
 
@@ -138,8 +142,36 @@ public class MlbLiveRetrievalService {
             //notify on every inning change
             if (inningChanged && events.contains(NotificationEvent.INNING_CHANGE)) {
                 if(currentInning > 1){
-                    notificationService.sendNotification(sub, "➖ Inning " + Integer.toString(currentInning - 1) + " has ended ➖\n" +
+                    StringBuilder stringToSend = new StringBuilder();
+                    stringToSend.append("➖ Inning " + Integer.toString(currentInning - 1) + " has ended ➖\n" +
                     "Score: " + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam));
+                    if(events.contains(NotificationEvent.END_INNING_PITCHER_STATS)){
+                        String pitcherId;
+                        String pitcherName;
+                        String summary = null;
+
+                        if(subbedTeamIsHomeTeam){
+                            pitcherId = previous.getCurrentHomePitcherId();
+                            pitcherName = previous.getCurrentHomePitcher();
+                            if(pitcherId != null){
+                                summary = feed.getLiveData().getBoxScore().getTeams().getHome().getPlayers()
+                                    .get(pitcherId).getStats().getPitching().getSummary();
+                            }
+                        } else {
+                            pitcherId = previous.getCurrentAwayPitcherId();
+                            pitcherName = previous.getCurrentAwayPitcher();
+                            if(pitcherId != null){
+                                summary = feed.getLiveData().getBoxScore().getTeams().getAway().getPlayers()
+                                    .get(pitcherId).getStats().getPitching().getSummary();
+                            }
+                        }
+
+                        if(summary != null){
+                            stringToSend.append("\n" + pitcherName + " : " + summary);
+                        }
+                    }
+
+                    notificationService.sendNotification(sub, stringToSend.toString());
                 }
             }
 
@@ -162,8 +194,10 @@ public class MlbLiveRetrievalService {
 
         if("Top".equals(inningHalf)){
             previous.setCurrentHomePitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
+            previous.setCurrentHomePitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
         } else {
             previous.setCurrentAwayPitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
+            previous.setCurrentAwayPitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
         }
     }
 
