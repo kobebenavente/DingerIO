@@ -18,26 +18,24 @@ public class SubscriptionService {
     private TeamSubscriptionRepository teamSubscriptionRepository;
     private UserRepository userRepository;
     private TeamRepository teamRepository;
+    private NotificationService notificationService;
 
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository, TeamSubscriptionRepository teamSubscriptionRepository, 
-        PlayerSubscriptionRepository playerSubscriptionRepository, UserRepository userRepository, TeamRepository teamRepository){
+        PlayerSubscriptionRepository playerSubscriptionRepository, UserRepository userRepository, TeamRepository teamRepository, NotificationService notificationService){
             this.teamSubscriptionRepository = teamSubscriptionRepository;
             this.userRepository = userRepository;
             this.teamRepository = teamRepository;
+            this.notificationService = notificationService;
     }
 
     public TeamSubscription createInitialTeamSubscription(Integer teamId){
-
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
-
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
-
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team does not exist"));
-
         TeamSubscription teamSubscription = new TeamSubscription(user, team);
-
         teamSubscriptionRepository.save(teamSubscription);
+        notificationService.sendNotification(teamSubscription, "🔔 Welcome to DingerIO! You are now subbed to the " + team.getTeamName() + "" + team.getTeamEmoji());
         return teamSubscription;
     }
 
@@ -48,6 +46,7 @@ public class SubscriptionService {
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
         subscription.setTeam(team);        
         teamSubscriptionRepository.save(subscription);
+        notificationService.sendNotification(subscription, "🔔 Changed subbed team to the " + team.getTeamName() + " " + team.getTeamEmoji());
     }
 
 
@@ -55,7 +54,6 @@ public class SubscriptionService {
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
-
         subscription.getNotificationEvents().add(eventType);
         teamSubscriptionRepository.save(subscription);
     }
@@ -64,7 +62,6 @@ public class SubscriptionService {
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
-
         subscription.getNotificationEvents().remove(eventType);
         teamSubscriptionRepository.save(subscription);        
     }
