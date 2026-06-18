@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.kobe.dinger.DTOs.livegamefeed.AllPlaysDTO;
+import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerPitchingStatsDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LinescoreDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LiveFeedResponseDTO;
 import com.kobe.dinger.model.GameState;
@@ -19,12 +20,12 @@ import com.kobe.dinger.model.Team;
 import com.kobe.dinger.model.TeamSubscription;
 
 @Service
-public class MlbLiveRetrievalService {
+public class LiveGameService {
     private RestTemplate restTemplate = new RestTemplate();
     private NotificationService notificationService;
-    private static final Logger log = LoggerFactory.getLogger(MlbLiveRetrievalService.class);
+    private static final Logger log = LoggerFactory.getLogger(LiveGameService.class);
 
-    public MlbLiveRetrievalService(NotificationService notificationService) {
+    public LiveGameService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
@@ -59,10 +60,9 @@ public class MlbLiveRetrievalService {
         GameState previous = lastGameState.get(gamePk);
 
         // If game state was not initialized before processGame() was called, then the application was 
-        // started mid-game or this team did not have subscribed users until mid-game. Set as initialized, 
-        // update the current game snapshot, and return.
-        // Not doing this could result in notification flooding since game snapshots start as empty
-        // and several events may have occurred.
+        // started mid-game or this team did not have subscribers until mid-game. Set as initialized, 
+        // update the current game snapshot, and return. Not doing this could result in notification 
+        // flooding since game snapshots start as empty and several events may have occurred.
         if (!previous.isLiveGameInitialized()) {
             previous.setLiveGameInitialized(true);
             previous.setScoringPlays(scoringPlays);
@@ -138,11 +138,21 @@ public class MlbLiveRetrievalService {
 
             //notify on every pitcher change
             if(subbedTeamIsHomeTeam && homePitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)){
-                notificationService.sendNotification(sub, "↔️ Pitcher change ↔️\n" + previous.getCurrentHomePitcher() + " checks out. " + 
-                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() + " comes in.");
+                StringBuilder stringToSend = new StringBuilder();
+                stringToSend.append("↔️ Pitcher change ↔️\n" 
+                    + previous.getCurrentHomePitcher() + " checks out. " 
+                    + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() 
+                    + " comes in.");
+                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
+                notificationService.sendNotification(sub, stringToSend.toString());
             } else if (!subbedTeamIsHomeTeam && awayPitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)){
-                notificationService.sendNotification(sub, "↔️ Pitcher change ↔️\n" + previous.getCurrentAwayPitcher() + " checks out. " + 
-                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() + " comes in.");             
+                StringBuilder stringToSend = new StringBuilder();
+                stringToSend.append("↔️ Pitcher change ↔️\n" 
+                    + previous.getCurrentAwayPitcher() + " checks out. " 
+                    + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() 
+                    + " comes in.");
+                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
+                notificationService.sendNotification(sub, stringToSend.toString());       
             }
 
             //notify on every inning change
@@ -152,31 +162,8 @@ public class MlbLiveRetrievalService {
                     stringToSend.append("➖ Inning " + Integer.toString(currentInning - 1) + " has ended ➖\n" +
                     "Score: " + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam));
                     if(events.contains(NotificationEvent.END_INNING_PITCHER_STATS)){
-                        String pitcherId;
-                        String pitcherName;
-                        String summary = null;
-
-                        if(subbedTeamIsHomeTeam){
-                            pitcherId = previous.getCurrentHomePitcherId();
-                            pitcherName = previous.getCurrentHomePitcher();
-                            if(pitcherId != null){
-                                summary = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers()
-                                    .get(pitcherId).getStats().getPitching().getSummary();
-                            }
-                        } else {
-                            pitcherId = previous.getCurrentAwayPitcherId();
-                            pitcherName = previous.getCurrentAwayPitcher();
-                            if(pitcherId != null){
-                                summary = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
-                                    .get(pitcherId).getStats().getPitching().getSummary();
-                            }
-                        }
-
-                        if(summary != null){
-                            stringToSend.append("\n" + pitcherName + " : " + summary);
-                        }
+                        stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
                     }
-
                     notificationService.sendNotification(sub, stringToSend.toString());
                 }
             }
@@ -233,7 +220,7 @@ public class MlbLiveRetrievalService {
         return scoringMessage;
     }
 
-    String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam){
+     String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam){
         String lineScoreMessage = "";
             if(subbedTeamIsHomeTeam){
                 lineScoreMessage = "**" + homeTeam.getTeamName() + ": " + currentHomeScore + " | " + awayTeam.getTeamName() + ": " + currentAwayScore + "**";     
@@ -242,6 +229,27 @@ public class MlbLiveRetrievalService {
                 + ": " + currentHomeScore + "**";        
             }
         return lineScoreMessage;
+    }
+
+    private String generatePitcherStatLine(Boolean subbedTeamIsHomeTeam, LiveFeedResponseDTO feed, GameState gameState){
+        String pitcherName;
+        String pitcherId;
+        BoxScorePlayerPitchingStatsDTO stats;
+
+        if(subbedTeamIsHomeTeam){
+            pitcherName = gameState.getCurrentHomePitcher();
+            pitcherId = gameState.getCurrentHomePitcherId();
+            if(pitcherId == null || feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers().get(pitcherId) == null) return "";
+            stats = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers().get(pitcherId).getStats().getPitching();
+        } else {
+            pitcherName = gameState.getCurrentAwayPitcher();
+            pitcherId = gameState.getCurrentAwayPitcherId();
+            if(pitcherId == null || feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers().get(pitcherId) == null) return "";
+            stats = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers().get(pitcherId).getStats().getPitching();
+        }
+
+        return String.format("\n%s : %s IP | %s H | %s ER | %s BB | %s K | %s P",
+            pitcherName, stats.getInningsPitched(), stats.getHits(), stats.getEarnedRuns(), stats.getBaseOnBalls(), stats.getStrikeOuts(), stats.getNumberOfPitches());
     }
     
 }

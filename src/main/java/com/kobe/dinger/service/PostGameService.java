@@ -19,13 +19,13 @@ import com.kobe.dinger.model.TeamSubscription;
 import com.kobe.dinger.repository.TeamRepository;
 
 @Service
-public class GameEndService {
+public class PostGameService {
     private RestTemplate restTemplate = new RestTemplate();
     private NotificationService notificationService;
     private TeamRepository teamRepository;
-    private MlbLiveRetrievalService mlbLiveRetrievalService;
+    private LiveGameService mlbLiveRetrievalService;
 
-    public GameEndService(NotificationService notificationService, TeamRepository teamRepository, MlbLiveRetrievalService mlbLiveRetrievalService) {
+    public PostGameService(NotificationService notificationService, TeamRepository teamRepository, LiveGameService mlbLiveRetrievalService) {
         this.notificationService = notificationService;
         this.teamRepository = teamRepository;
         this.mlbLiveRetrievalService = mlbLiveRetrievalService;

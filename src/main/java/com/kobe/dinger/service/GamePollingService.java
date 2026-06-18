@@ -34,16 +34,16 @@ public class GamePollingService {
     private static final Logger log = LoggerFactory.getLogger(GamePollingService.class);
     private TeamSubscriptionRepository teamSubscriptionRepository;
     private TeamRepository teamRepository;
-    private MlbLiveRetrievalService mlbLiveRetrievalService;
+    private LiveGameService mlbLiveRetrievalService;
     private NotificationService notificationService;
     private PreGameService preGameService;
-    private GameEndService gameEndService;
+    private PostGameService gameEndService;
     private RestTemplate restTemplate = new RestTemplate();
     private Map<Integer, GameState> lastGameState = new ConcurrentHashMap<>();
     private ExecutorService executor = Executors.newFixedThreadPool(15);
 
-    public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, MlbLiveRetrievalService mlbLiveRetrievalService,
-        NotificationService notificationService, PreGameService preGameService, GameEndService gameEndService
+    public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService mlbLiveRetrievalService,
+        NotificationService notificationService, PreGameService preGameService, PostGameService gameEndService
     ){
         this.teamSubscriptionRepository = teamSubscriptionRepository;
         this.teamRepository = teamRepository;
