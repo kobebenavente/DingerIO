@@ -59,15 +59,16 @@ public class LiveGameService {
 
         GameState previous = lastGameState.get(gamePk);
 
-        // If game state was not initialized before processGame() was called, then the application was 
-        // started mid-game or this team did not have subscribers until mid-game. Set as initialized, 
+        // If game state is not tracked before processGame() was called, then the application was 
+        // started mid-game or this team did not have subscribers until mid-game. Set as tracked, 
         // update the current game snapshot, and return. Not doing this could result in notification 
-        // flooding since game snapshots start as empty and several events may have occurred.
-        if (!previous.isLiveGameInitialized()) {
-            previous.setLiveGameInitialized(true);
+        // flooding since game snapshots start as empty and several events may have occurred before being tracked.
+        if (!previous.isGameTracked()) {
+            previous.setGameTracked(true);
             previous.setScoringPlays(scoringPlays);
             previous.setCurrentInning(currentInning);
             previous.setInningHalf(inningHalf);
+            log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
 

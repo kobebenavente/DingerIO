@@ -4,14 +4,12 @@ import java.util.List;
 
 public class GameState {
     private String detailedState;
-    private String abstractGameState;
     private int currentInning;
     private String inningHalf;
     private List<Integer> scoringPlays;
     private boolean isGameStartingNotificationSent;
     private boolean isGameStartingSoonNotificationSent;
-    private boolean isLiveGameInitialized;
-    private boolean isPreGameInitialized;
+    private boolean isGameTracked;
     private boolean isWinsAndLossesSet;
     private Integer homeWins; 
     private Integer homeLosses;
@@ -27,6 +25,16 @@ public class GameState {
     private String currentHomePitcherId;
     private String currentAwayPitcherId;
 
+    public GameState(int currentInning, String inningHalf, List<Integer> scoringPlays) {
+        this.currentInning = currentInning;
+        this.inningHalf = inningHalf;
+        this.scoringPlays = scoringPlays;
+        this.isGameStartingNotificationSent = false;
+        this.isGameTracked = false;
+        this.isGameStartingSoonNotificationSent = false;
+        this.isWinsAndLossesSet = false;
+        this.startingPitcherMessageSent = false;
+    }
 
     public String getCurrentHomePitcherId() {
         return currentHomePitcherId;
@@ -84,32 +92,12 @@ public class GameState {
         this.startingPitcherMessageSent = startingPitcherMessageSent;
     }
 
-    public GameState(int currentInning, String inningHalf, List<Integer> scoringPlays) {
-        this.currentInning = currentInning;
-        this.inningHalf = inningHalf;
-        this.scoringPlays = scoringPlays;
-        this.isGameStartingNotificationSent = false;
-        this.isLiveGameInitialized = false;
-        this.isPreGameInitialized = true;
-        this.isGameStartingSoonNotificationSent = false;
-        this.isWinsAndLossesSet = false;
-        this.startingPitcherMessageSent = false;
-    }
-
     public String getDetailedState() {
         return detailedState;
     }
 
     public void setDetailedState(String detailedState) {
         this.detailedState = detailedState;
-    }
-
-    public String getAbstractGameState() {
-        return abstractGameState;
-    }
-
-    public void setAbstractGameState(String abstractGameState) {
-        this.abstractGameState = abstractGameState;
     }
 
     public int getCurrentInning(){
@@ -140,18 +128,11 @@ public class GameState {
         this.isGameStartingNotificationSent = isGameStartingNotificationSent;
     }
 
-    public boolean isLiveGameInitialized(){
-        return isLiveGameInitialized;
+    public boolean isGameTracked(){
+        return isGameTracked;
     }
-    public void setLiveGameInitialized(boolean isLiveGameInitialized){
-        this.isLiveGameInitialized = isLiveGameInitialized;
-    }
-
-    public boolean isPreGameInitialized(){
-        return isPreGameInitialized;
-    }
-    public void setPreGameInitialized(boolean isPreGameInitialized){
-        this.isPreGameInitialized = isPreGameInitialized;
+    public void setGameTracked(boolean isGameTracked){
+        this.isGameTracked = isGameTracked;
     }
 
     public boolean isGameStartingSoonNotificationSent(){

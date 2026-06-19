@@ -168,7 +168,7 @@ public class GamePollingService {
                         gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
                         gs.setWinsAndLossesSet(true);
                     }
-                    lastGameState.get(game.getGamePk()).setLiveGameInitialized(true);
+                    lastGameState.get(game.getGamePk()).setGameTracked(true);
                     lastGameState.get(game.getGamePk()).setDetailedState(game.getStatus().getDetailedState());
                     preGameService.processGame(game, game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
                 }
