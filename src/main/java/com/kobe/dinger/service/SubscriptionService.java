@@ -35,7 +35,7 @@ public class SubscriptionService {
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team does not exist"));
         TeamSubscription teamSubscription = new TeamSubscription(user, team);
         teamSubscriptionRepository.save(teamSubscription);
-        notificationService.sendNotification(teamSubscription, "🔔 Welcome to DingerIO! You are now subbed to the " + team.getTeamName() + "" + team.getTeamEmoji());
+        notificationService.sendNotification(teamSubscription, "🔔⚾ Welcome to DingerIO! You are now subscribed to the " + team.getTeamName() + " " + team.getTeamEmoji());
         return teamSubscription;
     }
 
@@ -46,7 +46,7 @@ public class SubscriptionService {
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
         subscription.setTeam(team);        
         teamSubscriptionRepository.save(subscription);
-        notificationService.sendNotification(subscription, "🔔 Changed subbed team to the " + team.getTeamName() + " " + team.getTeamEmoji());
+        notificationService.sendNotification(subscription, "🔔⚾ Changed team subscription to the " + team.getTeamName() + " " + team.getTeamEmoji());
     }
 
 
