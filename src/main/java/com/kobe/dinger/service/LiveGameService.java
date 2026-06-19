@@ -31,8 +31,8 @@ public class LiveGameService {
 
     public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam) {
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
-        LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
 
+        LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
         if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null
             || feed.getLiveData().getBoxscore() == null
             || feed.getLiveData().getBoxscore().getTeams() == null) {
@@ -50,7 +50,6 @@ public class LiveGameService {
         int currentAwayScore = linescore.getTeams().getAway().getRuns();
         int currentInning = linescore.getCurrentInning();
         String inningHalf = linescore.getInningHalf();
-
 
         List<Integer> scoringPlays = new ArrayList<>();
         if(feed.getLiveData().getPlays().getScoringPlays() != null){
@@ -85,8 +84,6 @@ public class LiveGameService {
         boolean scoreChanged = previous.getScoringPlays().size() < scoringPlays.size(); 
         boolean inningChanged = currentInning > previous.getCurrentInning();
         boolean halfChanged = inningChanged || !inningHalf.equals(previous.getInningHalf());
-        List<AllPlaysDTO> allPlays;
-        int lastScoringPlayId;
         boolean homeRunScored = false;
         boolean homeTeamScored = false;
         boolean awayTeamScored = false;
@@ -104,24 +101,24 @@ public class LiveGameService {
             awayPitcherChanged = true;
         }
 
+        //MLB API gives all plays as a list in the JSON response. In order to ensure we send out the proper notification for 
+        //a score change, retrieve the last scoring play ID then loop through the list of plays starting from the end (order of 
+        //plays goes from oldest -> most recent) and get the play information when the ID's match.
         if(scoreChanged){
-            allPlays = feed.getLiveData().getPlays().getAllPlays();
-            lastScoringPlayId = scoringPlays.getLast();        
+            List<AllPlaysDTO> allPlays = feed.getLiveData().getPlays().getAllPlays();
+            int lastScoringPlayId = scoringPlays.getLast();        
             for(int i = allPlays.size() - 1; i >= 0; i--){
                 if(allPlays.get(i).getAbout().getAtBatIndex() == lastScoringPlayId){
                     if("home_run".equals(allPlays.get(i).getResult().getEventType())){
                         homeRunScored = true;
                     }
-
                     if("bottom".equals(allPlays.get(i).getAbout().getHalfInning())){
                         homeTeamScored = true;
                     }
-
                     if("top".equals(allPlays.get(i).getAbout().getHalfInning())){
                         awayTeamScored = true;
                     }
                     scoringPlayDescription = allPlays.get(i).getResult().getDescription();
-
                     break;
                 }
             }
@@ -160,8 +157,8 @@ public class LiveGameService {
             if (inningChanged && events.contains(NotificationEvent.INNING_CHANGE)) {
                 if(currentInning > 1){
                     StringBuilder stringToSend = new StringBuilder();
-                    stringToSend.append("➖ Inning " + Integer.toString(currentInning - 1) + " has ended ➖\n" +
-                    "Score: " + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam));
+                    stringToSend.append("➖ Inning " + (currentInning - 1) + " has ended ➖\n" +
+                    "Score: " + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam));
                     if(events.contains(NotificationEvent.END_INNING_PITCHER_STATS)){
                         stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
                     }
@@ -182,9 +179,9 @@ public class LiveGameService {
             }
         }
 
-        lastGameState.get(gamePk).setCurrentInning(currentInning);
-        lastGameState.get(gamePk).setInningHalf(inningHalf);
-        lastGameState.get(gamePk).setScoringPlays(scoringPlays);
+        previous.setCurrentInning(currentInning);
+        previous.setInningHalf(inningHalf);
+        previous.setScoringPlays(scoringPlays);
 
         if("Top".equals(inningHalf)){
             previous.setCurrentHomePitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
@@ -195,41 +192,30 @@ public class LiveGameService {
         }
     }
 
-    private String generateScoringMessage(String scoringPlayDescription, int currentHomeScore, int currentAwayScore, boolean homeRunScored, boolean homeTeamScored, boolean awayTeamScored, Team homeTeam,Team awayTeam, boolean subbedTeamIsHomeTeam){
+    private String generateScoringMessage(String scoringPlayDescription, int currentHomeScore, int currentAwayScore, boolean homeRunScored, boolean homeTeamScored, boolean awayTeamScored, Team homeTeam, Team awayTeam, boolean subbedTeamIsHomeTeam){
 
         String scoringMessage = "";
 
         if(homeRunScored){
             if(subbedTeamIsHomeTeam && homeTeamScored){
-                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);                 
+                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
             } else if(!subbedTeamIsHomeTeam && awayTeamScored){
-                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);          
+                scoringMessage = "💥 HOME RUN! 💥\n" + scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
             } else {
-                scoringMessage = scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
-            } 
+                scoringMessage = scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
+            }
         } else {
             if(subbedTeamIsHomeTeam && homeTeamScored){
                 scoringMessage = homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + " score! " + homeTeam.getTeamEmoji() + "\n"
-                + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
+                + scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
             } else if (!subbedTeamIsHomeTeam && awayTeamScored){
                 scoringMessage = awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + " score! " + awayTeam.getTeamEmoji() + "\n"
-                + scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
+                + scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
             } else {
-                scoringMessage = scoringPlayDescription + "\n" + generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
+                scoringMessage = scoringPlayDescription + "\n" + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam);
             }
         }
         return scoringMessage;
-    }
-
-     String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam){
-        String lineScoreMessage = "";
-            if(subbedTeamIsHomeTeam){
-                lineScoreMessage = "**" + homeTeam.getTeamName() + ": " + currentHomeScore + " | " + awayTeam.getTeamName() + ": " + currentAwayScore + "**";     
-            } else {
-                lineScoreMessage = "**" + awayTeam.getTeamName() + ": " + currentAwayScore + " | " + homeTeam.getTeamName()
-                + ": " + currentHomeScore + "**";        
-            }
-        return lineScoreMessage;
     }
 
     private String generatePitcherStatLine(Boolean subbedTeamIsHomeTeam, LiveFeedResponseDTO feed, GameState gameState){
@@ -252,6 +238,5 @@ public class LiveGameService {
         return String.format("\n%s : %s IP | %s H | %s ER | %s BB | %s K | %s P",
             pitcherName, stats.getInningsPitched(), stats.getHits(), stats.getEarnedRuns(), stats.getBaseOnBalls(), stats.getStrikeOuts(), stats.getNumberOfPitches());
     }
-    
 }
 

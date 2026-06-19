@@ -23,12 +23,10 @@ public class PostGameService {
     private RestTemplate restTemplate = new RestTemplate();
     private NotificationService notificationService;
     private TeamRepository teamRepository;
-    private LiveGameService mlbLiveRetrievalService;
 
-    public PostGameService(NotificationService notificationService, TeamRepository teamRepository, LiveGameService mlbLiveRetrievalService) {
+    public PostGameService(NotificationService notificationService, TeamRepository teamRepository) {
         this.notificationService = notificationService;
         this.teamRepository = teamRepository;
-        this.mlbLiveRetrievalService = mlbLiveRetrievalService;
     }
 
     public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions, Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
@@ -111,7 +109,7 @@ public class PostGameService {
             StringBuilder gameEndMessage = new StringBuilder();
             Set<NotificationEvent> events = sub.getNotificationEvents();
             if (events.contains(NotificationEvent.GAME_END)) {
-                gameEndMessage.append("Game has ended! \n Final Score: " + mlbLiveRetrievalService.generateLineScores(subbedTeamIsHomeTeam, homeFinalScore, awayFinalScore, homeTeam, awayTeam));
+                gameEndMessage.append("Game has ended! \n Final Score: " + notificationService.generateLineScores(subbedTeamIsHomeTeam, homeFinalScore, awayFinalScore, homeTeam, awayTeam));
             }
 
             if(events.contains(NotificationEvent.END_GAME_STANDINGS) && events.contains(NotificationEvent.GAME_END)){

@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.kobe.dinger.model.Team;
 import com.kobe.dinger.model.TeamSubscription;
 
 @Service
@@ -21,6 +22,14 @@ public class NotificationService {
         }
         
         postToDiscord(webhookUrl, message);
+    }
+
+    public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
+        if (subbedTeamIsHomeTeam) {
+            return "**" + homeTeam.getTeamName() + ": " + currentHomeScore + " | " + awayTeam.getTeamName() + ": " + currentAwayScore + "**";
+        } else {
+            return "**" + awayTeam.getTeamName() + ": " + currentAwayScore + " | " + homeTeam.getTeamName() + ": " + currentHomeScore + "**";
+        }
     }
 
     private void postToDiscord(String webhookUrl, String message) {
