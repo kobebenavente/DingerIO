@@ -100,7 +100,7 @@ public class GamePollingService {
                     if(!gameStateSnapshots.get(gamePk).isWinsAndLossesSet()){
                         setWinLossRecord(lastGameState, game);
                     }
-                    lastGameState.setGameTracked(true);
+                    lastGameState.setTracked(true);
                     lastGameState.setDetailedState(game.getStatus().getDetailedState());
                     preGameService.processGame(game, gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
                 }

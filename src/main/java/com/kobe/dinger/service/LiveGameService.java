@@ -2,7 +2,6 @@ package com.kobe.dinger.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ public class LiveGameService {
         this.notificationService = notificationService;
     }
 
-    public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  GameState gameState, Team homeTeam, Team awayTeam) {
+    public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  GameState lastGameState, Team homeTeam, Team awayTeam) {
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
 
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
@@ -56,37 +55,35 @@ public class LiveGameService {
             scoringPlays.addAll(feed.getLiveData().getPlays().getScoringPlays());
         }
 
-        GameState previous = lastGameState.get(gamePk);
-
         // If game state is not tracked before processGame() was called, then the application was 
         // started mid-game or this team did not have subscribers until mid-game. Set as tracked, 
         // update the current game snapshot, and return. Not doing this could result in notification 
         // flooding since game snapshots start as empty and several events may have occurred before being tracked.
-        if (!previous.isGameTracked()) {
-            previous.setGameTracked(true);
-            previous.setScoringPlays(scoringPlays);
-            previous.setCurrentInning(currentInning);
-            previous.setInningHalf(inningHalf);
+        if (!lastGameState.isTracked()) {
+            lastGameState.setTracked(true);
+            lastGameState.setScoringPlays(scoringPlays);
+            lastGameState.setCurrentInning(currentInning);
+            lastGameState.setInningHalf(inningHalf);
             log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
 
         boolean isStartOfGame = false;
-        if (("Pre-Game".equals(previous.getDetailedState()) || "Warmup".equals(previous.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
+        if (("Pre-Game".equals(lastGameState.getDetailedState()) || "Warmup".equals(lastGameState.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
             isStartOfGame = true;
-            previous.setCurrentInning(currentInning);
-            previous.setScoringPlays(scoringPlays);
-            previous.setInningHalf(inningHalf);
-            previous.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());
-            previous.setCurrentHomePitcherId("ID" + feed.getGameData().getProbablePitchers().getHome().getId());
-            previous.setCurrentAwayPitcher(feed.getGameData().getProbablePitchers().getAway().getFullName());
-            previous.setCurrentAwayPitcherId("ID" + feed.getGameData().getProbablePitchers().getAway().getId());
-            previous.setDetailedState("In Progress");
+            lastGameState.setCurrentInning(currentInning);
+            lastGameState.setScoringPlays(scoringPlays);
+            lastGameState.setInningHalf(inningHalf);
+            lastGameState.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());
+            lastGameState.setCurrentHomePitcherId("ID" + feed.getGameData().getProbablePitchers().getHome().getId());
+            lastGameState.setCurrentAwayPitcher(feed.getGameData().getProbablePitchers().getAway().getFullName());
+            lastGameState.setCurrentAwayPitcherId("ID" + feed.getGameData().getProbablePitchers().getAway().getId());
+            lastGameState.setDetailedState("In Progress");
         }
 
-        boolean scoreChanged = previous.getScoringPlays().size() < scoringPlays.size(); 
-        boolean inningChanged = currentInning > previous.getCurrentInning();
-        boolean halfChanged = inningChanged || !inningHalf.equals(previous.getInningHalf());
+        boolean scoreChanged = lastGameState.getScoringPlays().size() < scoringPlays.size(); 
+        boolean inningChanged = currentInning > lastGameState.getCurrentInning();
+        boolean halfChanged = inningChanged || !inningHalf.equals(lastGameState.getInningHalf());
         boolean homeRunScored = false;
         boolean homeTeamScored = false;
         boolean awayTeamScored = false;
@@ -95,12 +92,12 @@ public class LiveGameService {
         boolean awayPitcherChanged = false;
 
         if("Top".equals(inningHalf)
-            && previous.getCurrentHomePitcher() != null
-            && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(previous.getCurrentHomePitcher())){
+            && lastGameState.getCurrentHomePitcher() != null
+            && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(lastGameState.getCurrentHomePitcher())){
             homePitcherChanged = true;
         } else if ("Bottom".equals(inningHalf)
-            && previous.getCurrentAwayPitcher() != null
-            && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(previous.getCurrentAwayPitcher())){
+            && lastGameState.getCurrentAwayPitcher() != null
+            && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(lastGameState.getCurrentAwayPitcher())){
             awayPitcherChanged = true;
         }
 
@@ -141,18 +138,18 @@ public class LiveGameService {
             if(subbedTeamIsHomeTeam && homePitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)){
                 StringBuilder stringToSend = new StringBuilder();
                 stringToSend.append("↔️ Pitcher change ↔️\n" 
-                    + previous.getCurrentHomePitcher() + " checks out. " 
+                    + lastGameState.getCurrentHomePitcher() + " checks out. " 
                     + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() 
                     + " comes in.");
-                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
+                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, lastGameState));
                 notificationService.sendNotification(sub, stringToSend.toString());
             } else if (!subbedTeamIsHomeTeam && awayPitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)){
                 StringBuilder stringToSend = new StringBuilder();
                 stringToSend.append("↔️ Pitcher change ↔️\n" 
-                    + previous.getCurrentAwayPitcher() + " checks out. " 
+                    + lastGameState.getCurrentAwayPitcher() + " checks out. " 
                     + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName() 
                     + " comes in.");
-                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
+                stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, lastGameState));
                 notificationService.sendNotification(sub, stringToSend.toString());       
             }
 
@@ -163,7 +160,7 @@ public class LiveGameService {
                     stringToSend.append("➖ Inning " + (currentInning - 1) + " has ended ➖\n" +
                     "Score: " + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore, currentAwayScore, homeTeam, awayTeam));
                     if(events.contains(NotificationEvent.END_INNING_PITCHER_STATS)){
-                        stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, previous));
+                        stringToSend.append(generatePitcherStatLine(subbedTeamIsHomeTeam, feed, lastGameState));
                     }
                     notificationService.sendNotification(sub, stringToSend.toString());
                 }
@@ -182,16 +179,16 @@ public class LiveGameService {
             }
         }
 
-        previous.setCurrentInning(currentInning);
-        previous.setInningHalf(inningHalf);
-        previous.setScoringPlays(scoringPlays);
+        lastGameState.setCurrentInning(currentInning);
+        lastGameState.setInningHalf(inningHalf);
+        lastGameState.setScoringPlays(scoringPlays);
 
         if("Top".equals(inningHalf)){
-            previous.setCurrentHomePitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
-            previous.setCurrentHomePitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
+            lastGameState.setCurrentHomePitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
+            lastGameState.setCurrentHomePitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
         } else {
-            previous.setCurrentAwayPitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
-            previous.setCurrentAwayPitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
+            lastGameState.setCurrentAwayPitcher(feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName());
+            lastGameState.setCurrentAwayPitcherId("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getId());
         }
     }
 

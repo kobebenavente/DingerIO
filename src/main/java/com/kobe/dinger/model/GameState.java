@@ -9,7 +9,7 @@ public class GameState {
     private List<Integer> scoringPlays;
     private boolean isGameStartingNotificationSent;
     private boolean isGameStartingSoonNotificationSent;
-    private boolean isGameTracked;
+    private boolean isTracked;
     private boolean isWinsAndLossesSet;
     private Integer homeWins; 
     private Integer homeLosses;
@@ -25,7 +25,7 @@ public class GameState {
 
     public GameState() {
         this.isGameStartingNotificationSent = false;
-        this.isGameTracked = false;
+        this.isTracked = false;
         this.isGameStartingSoonNotificationSent = false;
         this.isWinsAndLossesSet = false;
         this.startingPitcherMessageSent = false;
@@ -123,11 +123,11 @@ public class GameState {
         this.isGameStartingNotificationSent = isGameStartingNotificationSent;
     }
 
-    public boolean isGameTracked(){
-        return isGameTracked;
+    public boolean isTracked(){
+        return isTracked;
     }
-    public void setGameTracked(boolean isGameTracked){
-        this.isGameTracked = isGameTracked;
+    public void setTracked(boolean isGameTracked){
+        this.isTracked = isGameTracked;
     }
 
     public boolean isGameStartingSoonNotificationSent(){
