@@ -29,7 +29,7 @@ public class LiveGameService {
         this.notificationService = notificationService;
     }
 
-    public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam) {
+    public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  GameState gameState, Team homeTeam, Team awayTeam) {
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
 
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
@@ -74,7 +74,7 @@ public class LiveGameService {
         boolean isStartOfGame = false;
         if (("Pre-Game".equals(previous.getDetailedState()) || "Warmup".equals(previous.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
             isStartOfGame = true;
-            previous.setCurrentInning(1);
+            previous.setCurrentInning(currentInning);
             previous.setScoringPlays(scoringPlays);
             previous.setInningHalf(inningHalf);
             previous.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());

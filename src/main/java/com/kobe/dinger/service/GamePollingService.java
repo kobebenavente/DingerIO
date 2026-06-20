@@ -28,20 +28,20 @@ public class GamePollingService {
     private static final Logger log = LoggerFactory.getLogger(GamePollingService.class);
     private TeamSubscriptionRepository teamSubscriptionRepository;
     private TeamRepository teamRepository;
-    private LiveGameService mlbLiveRetrievalService;
+    private LiveGameService liveGameService;
     private PreGameService preGameService;
-    private PostGameService gameEndService;
+    private PostGameService postGameService;
     private RestTemplate restTemplate = new RestTemplate();
-    private Map<Integer, GameState> lastGameState = new ConcurrentHashMap<>();
+    private Map<Integer, GameState> gameStateSnapshots = new ConcurrentHashMap<>();
     private ExecutorService executor = Executors.newFixedThreadPool(15);
 
-    public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService mlbLiveRetrievalService,
-        PreGameService preGameService, PostGameService gameEndService){
+    public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService liveGameService,
+        PreGameService preGameService, PostGameService postGameService){
         this.teamSubscriptionRepository = teamSubscriptionRepository;
         this.teamRepository = teamRepository;
-        this.mlbLiveRetrievalService = mlbLiveRetrievalService;
+        this.liveGameService = liveGameService;
         this.preGameService = preGameService;
-        this.gameEndService = gameEndService;
+        this.postGameService = postGameService;
     }
 
     @Scheduled(cron = "*/15 * 7-23,0 * * *", zone = "America/Los_Angeles")
@@ -62,6 +62,7 @@ public class GamePollingService {
 
         for (GameDTO game : games) {
             executor.submit(() -> {
+                Integer gamePk = game.getGamePk();
                 Integer awayTeamMlbId = game.getTeams().getAway().getTeam().getId();
                 Integer homeTeamMlbId = game.getTeams().getHome().getTeam().getId();
                 Team awayTeam = teamRepository.findByMlbTeamId(awayTeamMlbId).orElse(null);
@@ -70,46 +71,48 @@ public class GamePollingService {
                 List<TeamSubscription> subscriptions;
                 subscriptions = new ArrayList<>(teamSubscriptionRepository.findByTeam(awayTeam));
                 subscriptions.addAll(teamSubscriptionRepository.findByTeam(homeTeam));
-
+                
                 if (subscriptions.isEmpty()) {
-                    log.info("No subscriptions for gamePk={}, skipping", game.getGamePk());
+                    log.info("No subscriptions for gamePk={}, skipping", gamePk);
                     return;
                 }
 
                 if ("Final".equals(game.getStatus().getDetailedState()) || "Postponed".equals(game.getStatus().getDetailedState()) || "Game Over".equals(game.getStatus().getDetailedState())) {
                     if ("Postponed".equals(game.getStatus().getDetailedState())) {
-                        gameEndService.processPostponed(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
+                        postGameService.processPostponed(gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
                     } else {
-                        gameEndService.processGameEnd(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
+                        postGameService.processGameEnd(gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
                     }
                 } else if("In Progress".equals(game.getStatus().getDetailedState())){ 
-                    if(!lastGameState.containsKey(game.getGamePk())){
-                        lastGameState.put(game.getGamePk(), new GameState());
+                    if(!gameStateSnapshots.containsKey(gamePk)){
+                        gameStateSnapshots.put(gamePk, new GameState());
                     }
-                    if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
-                        setWinLossRecord(lastGameState.get(game.getGamePk()), game);
+                    GameState lastGameState = gameStateSnapshots.get(gamePk);
+                    if(!gameStateSnapshots.get(gamePk).isWinsAndLossesSet()){
+                        setWinLossRecord(gameStateSnapshots.get(gamePk), game);
                     }
-                    mlbLiveRetrievalService.processGame(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
+                    liveGameService.processGame(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                 } else {
-                    if(!lastGameState.containsKey(game.getGamePk())){
-                        lastGameState.put(game.getGamePk(), new GameState());
+                    if(!gameStateSnapshots.containsKey(gamePk)){
+                        gameStateSnapshots.put(gamePk, new GameState());
                     }
-                    if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
-                        setWinLossRecord(lastGameState.get(game.getGamePk()), game);
+                    GameState lastGameState = gameStateSnapshots.get(gamePk);
+                    if(!gameStateSnapshots.get(gamePk).isWinsAndLossesSet()){
+                        setWinLossRecord(lastGameState, game);
                     }
-                    lastGameState.get(game.getGamePk()).setGameTracked(true);
-                    lastGameState.get(game.getGamePk()).setDetailedState(game.getStatus().getDetailedState());
-                    preGameService.processGame(game, game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
+                    lastGameState.setGameTracked(true);
+                    lastGameState.setDetailedState(game.getStatus().getDetailedState());
+                    preGameService.processGame(game, gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
                 }
             });
         }
     }
 
-    private void setWinLossRecord(GameState gs, GameDTO game){
-        gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
-        gs.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
-        gs.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
-        gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
-        gs.setWinsAndLossesSet(true);
+    private void setWinLossRecord(GameState gameState, GameDTO game){
+        gameState.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
+        gameState.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
+        gameState.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
+        gameState.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
+        gameState.setWinsAndLossesSet(true);
     }
 }
