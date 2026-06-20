@@ -5,7 +5,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -25,15 +24,13 @@ public class PreGameService{
         this.notificationService = notificationService;
     }
 
-    public void processGame(GameDTO gameInfo, Integer gamePk, List<TeamSubscription> subscriptions, Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
+    public void processGame(GameDTO gameInfo, Integer gamePk, List<TeamSubscription> subscriptions, GameState lastGameState, Team homeTeam, Team awayTeam){
         for(TeamSubscription sub: subscriptions){
             boolean subbedTeamIsHomeTeam = sub.getTeam().equals(homeTeam);
             Set<NotificationEvent> subNotificationEvents = sub.getNotificationEvents();
 
-            GameState gameState = lastGameState.get(gamePk);
-
             if(subNotificationEvents.contains(NotificationEvent.GAME_STARTING) &&
-            gameState != null && !gameState.isGameStartingNotificationSent()){
+            lastGameState != null && !lastGameState.isGameStartingNotificationSent()){
 
                 ZonedDateTime gameTime = Instant.parse(gameInfo.getGameDate())
                 .atZone(ZoneId.of("America/Los_Angeles"));
@@ -53,13 +50,13 @@ public class PreGameService{
                         + " is now starting");
                     }
 
-                    gameState.setGameStartingNotificationSent(true);
+                    lastGameState.setGameStartingNotificationSent(true);
                     notificationService.sendNotification(sub, stringToSend.toString());
                 }
             }
 
             if(subNotificationEvents.contains(NotificationEvent.GAME_DAY_REMINDER) &&
-            gameState != null && !gameState.isGameStartingSoonNotificationSent()){
+            lastGameState != null && !lastGameState.isGameStartingSoonNotificationSent()){
                 ZonedDateTime gameTime = Instant.parse(gameInfo.getGameDate())
                 .atZone(ZoneId.of("America/Los_Angeles"));
 
@@ -82,7 +79,7 @@ public class PreGameService{
                         + " today at " + pst + " / " + est);
                     }
 
-                    gameState.setGameStartingSoonNotificationSent(true);
+                    lastGameState.setGameStartingSoonNotificationSent(true);
                     notificationService.sendNotification(sub, stringToSend.toString());
                 }                
             }

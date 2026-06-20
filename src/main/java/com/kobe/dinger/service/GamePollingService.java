@@ -77,19 +77,24 @@ public class GamePollingService {
                     return;
                 }
 
-                if ("Final".equals(game.getStatus().getDetailedState()) || "Postponed".equals(game.getStatus().getDetailedState()) || "Game Over".equals(game.getStatus().getDetailedState())) {
+                if (("Final".equals(game.getStatus().getDetailedState()) || "Postponed".equals(game.getStatus().getDetailedState())
+                    || "Game Over".equals(game.getStatus().getDetailedState())) && gameStateSnapshots.containsKey(gamePk)){
+                    GameState lastGameState = gameStateSnapshots.get(gamePk);
                     if ("Postponed".equals(game.getStatus().getDetailedState())) {
-                        postGameService.processPostponed(gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
+                        postGameService.processPostponed(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     } else {
-                        postGameService.processGameEnd(gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
+                        postGameService.processGameEnd(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     }
-                } else if("In Progress".equals(game.getStatus().getDetailedState())){ 
+                    if(lastGameState.isGameEnded()){
+                        gameStateSnapshots.remove(gamePk);
+                    }
+                } else if("In Progress".equals(game.getStatus().getDetailedState())){
                     if(!gameStateSnapshots.containsKey(gamePk)){
                         gameStateSnapshots.put(gamePk, new GameState());
                     }
                     GameState lastGameState = gameStateSnapshots.get(gamePk);
-                    if(!gameStateSnapshots.get(gamePk).isWinsAndLossesSet()){
-                        setWinLossRecord(gameStateSnapshots.get(gamePk), game);
+                    if(!lastGameState.isWinsAndLossesSet()){
+                        setWinLossRecord(lastGameState, game);
                     }
                     liveGameService.processGame(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                 } else {
@@ -97,12 +102,12 @@ public class GamePollingService {
                         gameStateSnapshots.put(gamePk, new GameState());
                     }
                     GameState lastGameState = gameStateSnapshots.get(gamePk);
-                    if(!gameStateSnapshots.get(gamePk).isWinsAndLossesSet()){
+                    if(!lastGameState.isWinsAndLossesSet()){
                         setWinLossRecord(lastGameState, game);
                     }
                     lastGameState.setTracked(true);
                     lastGameState.setDetailedState(game.getStatus().getDetailedState());
-                    preGameService.processGame(game, gamePk, subscriptions, gameStateSnapshots, homeTeam, awayTeam);
+                    preGameService.processGame(game, gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                 }
             });
         }

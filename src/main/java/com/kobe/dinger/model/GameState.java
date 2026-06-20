@@ -7,10 +7,11 @@ public class GameState {
     private int currentInning;
     private String inningHalf;
     private List<Integer> scoringPlays;
-    private boolean isGameStartingNotificationSent;
-    private boolean isGameStartingSoonNotificationSent;
-    private boolean isTracked;
-    private boolean isWinsAndLossesSet;
+    private boolean gameStartingNotificationSent;
+    private boolean gameStartingSoonNotificationSent;
+    private boolean tracked;
+    private boolean winsAndLossesSet;
+    private boolean gameEnded;
     private Integer homeWins; 
     private Integer homeLosses;
     private Integer awayWins;
@@ -24,11 +25,20 @@ public class GameState {
     private String currentAwayPitcherId;
 
     public GameState() {
-        this.isGameStartingNotificationSent = false;
-        this.isTracked = false;
-        this.isGameStartingSoonNotificationSent = false;
-        this.isWinsAndLossesSet = false;
+        this.gameStartingNotificationSent = false;
+        this.tracked = false;
+        this.gameStartingSoonNotificationSent = false;
+        this.winsAndLossesSet = false;
         this.startingPitcherMessageSent = false;
+        this.gameEnded = false;
+    }
+
+    public boolean isGameEnded() {
+        return gameEnded;
+    }
+
+    public void setGameEnded(boolean gameEnded) {
+        this.gameEnded = gameEnded;
     }
 
     public String getCurrentHomePitcherId() {
@@ -117,24 +127,24 @@ public class GameState {
     }
 
     public boolean isGameStartingNotificationSent(){
-        return isGameStartingNotificationSent;
+        return gameStartingNotificationSent;
     }
     public void setGameStartingNotificationSent(boolean isGameStartingNotificationSent){
-        this.isGameStartingNotificationSent = isGameStartingNotificationSent;
+        this.gameStartingNotificationSent = isGameStartingNotificationSent;
     }
 
     public boolean isTracked(){
-        return isTracked;
+        return tracked;
     }
     public void setTracked(boolean isGameTracked){
-        this.isTracked = isGameTracked;
+        this.tracked = isGameTracked;
     }
 
     public boolean isGameStartingSoonNotificationSent(){
-        return isGameStartingSoonNotificationSent;
+        return gameStartingSoonNotificationSent;
     }
     public void setGameStartingSoonNotificationSent(boolean isGameStartingSoonNotificationSent){
-        this.isGameStartingSoonNotificationSent = isGameStartingSoonNotificationSent;
+        this.gameStartingSoonNotificationSent = isGameStartingSoonNotificationSent;
     }
 
     public Integer getHomeWins() {
@@ -170,11 +180,11 @@ public class GameState {
     }
 
     public boolean isWinsAndLossesSet() {
-        return isWinsAndLossesSet;
+        return winsAndLossesSet;
     }
 
     public void setWinsAndLossesSet(boolean isWinsAndLossesSet) {
-        this.isWinsAndLossesSet = isWinsAndLossesSet;
+        this.winsAndLossesSet = isWinsAndLossesSet;
     }
 
 }

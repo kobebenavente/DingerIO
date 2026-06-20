@@ -2,7 +2,6 @@ package com.kobe.dinger.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -29,13 +28,7 @@ public class PostGameService {
         this.teamRepository = teamRepository;
     }
 
-    public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions, Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
-        GameState previous = lastGameState.get(gamePk);
-
-        if (previous == null) {
-            return;
-        }
-
+    public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions, GameState lastGameState, Team homeTeam, Team awayTeam){
         String homeTeamStandingsUrl = "https://statsapi.mlb.com/api/v1/standings?leagueId=" + homeTeam.getLeagueId() + "&season=" + String.valueOf(LocalDate.now().getYear());
         StandingsResponseDTO homeTeamStandings = restTemplate.getForObject(homeTeamStandingsUrl, StandingsResponseDTO.class);
         StandingsResponseDTO awayTeamStandings = null;
@@ -85,10 +78,10 @@ public class PostGameService {
         }
 
         // standings haven't updated yet. retry on next poll.
-        if(homeTeamWins.equals(previous.getHomeWins()) && homeTeamLosses.equals(previous.getHomeLosses())){
+        if(homeTeamWins.equals(lastGameState.getHomeWins()) && homeTeamLosses.equals(lastGameState.getHomeLosses())){
             return;
         }
-        if(awayTeamWins.equals(previous.getAwayWins()) && awayTeamLosses.equals(previous.getAwayLosses())){
+        if(awayTeamWins.equals(lastGameState.getAwayWins()) && awayTeamLosses.equals(lastGameState.getAwayLosses())){
             return;
         }
 
@@ -125,14 +118,10 @@ public class PostGameService {
                 notificationService.sendNotification(sub, gameEndMessage.toString());
             }
         }
-        lastGameState.remove(gamePk);
+        lastGameState.setGameEnded(true);
     }
 
-    public void processPostponed(Integer gamePk, List<TeamSubscription> subscriptions, Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
-        if (lastGameState.get(gamePk) == null) {
-            return;
-        }
-
+    public void processPostponed(Integer gamePk, List<TeamSubscription> subscriptions, GameState lastGameState, Team homeTeam, Team awayTeam){
         for (TeamSubscription sub : subscriptions) {
             boolean subbedTeamIsHomeTeam = sub.getTeam().equals(homeTeam);
             Set<NotificationEvent> events = sub.getNotificationEvents();
@@ -144,7 +133,7 @@ public class PostGameService {
                 }
             }
         }
-        lastGameState.remove(gamePk);
+        lastGameState.setGameEnded(true);
     }
 
     private String generateStandingsString(Integer divisionId, StandingsResponseDTO standings, Integer mlbTeamId){
