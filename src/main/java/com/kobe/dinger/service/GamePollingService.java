@@ -45,7 +45,7 @@ public class GamePollingService {
     }
 
     @Scheduled(cron = "*/15 * 7-23,0 * * *", zone = "America/Los_Angeles")
-    public void pollGames(){
+    private void pollGames(){
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + today;
         log.info("Polling games for {}", today);
@@ -86,31 +86,19 @@ public class GamePollingService {
                     if(!lastGameState.containsKey(game.getGamePk())){
                         lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
                     }
-
                     // If the win/loss record for both teams hasn't been set yet in the game snapshot, set it.
                     // This needs to be done so that when the game eventually ends, we can detect when the standings have been changed by 
                     // comparing old record with new. Otherwise, pre-mature standings updates might be sent. 
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
-                        GameState gs = lastGameState.get(game.getGamePk());
-                        gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
-                        gs.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
-                        gs.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
-                        gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
-                        gs.setWinsAndLossesSet(true);
+                        setWinLossRecord(lastGameState.get(game.getGamePk()), game);
                     }
                     mlbLiveRetrievalService.processGame(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
                 } else {
                     if(!lastGameState.containsKey(game.getGamePk())){
                         lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
                     }
-        
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
-                        GameState gs = lastGameState.get(game.getGamePk());
-                        gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
-                        gs.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
-                        gs.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
-                        gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
-                        gs.setWinsAndLossesSet(true);
+                        setWinLossRecord(lastGameState.get(game.getGamePk()), game);
                     }
                     lastGameState.get(game.getGamePk()).setGameTracked(true);
                     lastGameState.get(game.getGamePk()).setDetailedState(game.getStatus().getDetailedState());
@@ -118,5 +106,13 @@ public class GamePollingService {
                 }
             });
         }
+    }
+
+    private void setWinLossRecord(GameState gs, GameDTO game){
+        gs.setHomeWins(game.getTeams().getHome().getLeagueRecord().getWins());
+        gs.setHomeLosses(game.getTeams().getHome().getLeagueRecord().getLosses());
+        gs.setAwayWins(game.getTeams().getAway().getLeagueRecord().getWins());
+        gs.setAwayLosses(game.getTeams().getAway().getLeagueRecord().getLosses());
+        gs.setWinsAndLossesSet(true);
     }
 }
