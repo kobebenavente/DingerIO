@@ -26,11 +26,8 @@ public class PreGameService{
     }
 
     public void processGame(GameDTO gameInfo, Integer gamePk, List<TeamSubscription> subscriptions, Map<Integer, GameState> lastGameState, Team homeTeam, Team awayTeam){
-
         for(TeamSubscription sub: subscriptions){
-
             boolean subbedTeamIsHomeTeam = sub.getTeam().equals(homeTeam);
-
             Set<NotificationEvent> subNotificationEvents = sub.getNotificationEvents();
 
             GameState gameState = lastGameState.get(gamePk);

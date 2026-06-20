@@ -15,8 +15,6 @@ public class GameState {
     private Integer homeLosses;
     private Integer awayWins;
     private Integer awayLosses;
-    private String currentPitcher;
-    private Integer currentPitcherId;
     private boolean startingPitcherMessageSent;
     private String homeStartingPitcher;
     private String awayStartingPitcher;
@@ -25,10 +23,7 @@ public class GameState {
     private String currentHomePitcherId;
     private String currentAwayPitcherId;
 
-    public GameState(int currentInning, String inningHalf, List<Integer> scoringPlays) {
-        this.currentInning = currentInning;
-        this.inningHalf = inningHalf;
-        this.scoringPlays = scoringPlays;
+    public GameState() {
         this.isGameStartingNotificationSent = false;
         this.isGameTracked = false;
         this.isGameStartingSoonNotificationSent = false;
@@ -182,19 +177,4 @@ public class GameState {
         this.isWinsAndLossesSet = isWinsAndLossesSet;
     }
 
-    public String getCurrentPitcher() {
-        return currentPitcher;
-    }
-
-    public void setCurrentPitcher(String currentPitcher) {
-        this.currentPitcher = currentPitcher;
-    }
-
-    public Integer getCurrentPitcherId() {
-        return currentPitcherId;
-    }
-
-    public void setCurrentPitcherId(Integer currentPitcherId) {
-        this.currentPitcherId = currentPitcherId;
-    }
 }

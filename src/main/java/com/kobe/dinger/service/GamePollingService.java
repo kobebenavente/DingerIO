@@ -84,18 +84,15 @@ public class GamePollingService {
                     }
                 } else if("In Progress".equals(game.getStatus().getDetailedState())){ 
                     if(!lastGameState.containsKey(game.getGamePk())){
-                        lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
+                        lastGameState.put(game.getGamePk(), new GameState());
                     }
-                    // If the win/loss record for both teams hasn't been set yet in the game snapshot, set it.
-                    // This needs to be done so that when the game eventually ends, we can detect when the standings have been changed by 
-                    // comparing old record with new. Otherwise, pre-mature standings updates might be sent. 
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
                         setWinLossRecord(lastGameState.get(game.getGamePk()), game);
                     }
                     mlbLiveRetrievalService.processGame(game.getGamePk(), subscriptions, lastGameState, homeTeam, awayTeam);
                 } else {
                     if(!lastGameState.containsKey(game.getGamePk())){
-                        lastGameState.put(game.getGamePk(), new GameState(0, "", new ArrayList<>()));
+                        lastGameState.put(game.getGamePk(), new GameState());
                     }
                     if(!lastGameState.get(game.getGamePk()).isWinsAndLossesSet()){
                         setWinLossRecord(lastGameState.get(game.getGamePk()), game);

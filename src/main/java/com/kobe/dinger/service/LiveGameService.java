@@ -74,6 +74,9 @@ public class LiveGameService {
         boolean isStartOfGame = false;
         if (("Pre-Game".equals(previous.getDetailedState()) || "Warmup".equals(previous.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
             isStartOfGame = true;
+            previous.setCurrentInning(1);
+            previous.setScoringPlays(scoringPlays);
+            previous.setInningHalf(inningHalf);
             previous.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());
             previous.setCurrentHomePitcherId("ID" + feed.getGameData().getProbablePitchers().getHome().getId());
             previous.setCurrentAwayPitcher(feed.getGameData().getProbablePitchers().getAway().getFullName());

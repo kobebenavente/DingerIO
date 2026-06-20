@@ -92,8 +92,6 @@ public class PostGameService {
             return;
         }
 
-
-
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
 
