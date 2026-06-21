@@ -13,7 +13,11 @@ import com.kobe.dinger.model.TeamSubscription;
 
 @Service
 public class NotificationService {
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
+
+    public NotificationService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public void sendNotification(TeamSubscription subscription, String message) {
         String webhookUrl = subscription.getUser().getDiscordWebhookUrl();

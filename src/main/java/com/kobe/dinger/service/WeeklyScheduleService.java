@@ -26,11 +26,12 @@ public class WeeklyScheduleService {
     private static final Logger log = LoggerFactory.getLogger(WeeklyScheduleService.class);
     private TeamSubscriptionRepository teamSubscriptionRepository;
     private NotificationService notificationService;
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
 
-    public WeeklyScheduleService(TeamSubscriptionRepository teamSubscriptionRepository, NotificationService notificationService) {
+    public WeeklyScheduleService(TeamSubscriptionRepository teamSubscriptionRepository, NotificationService notificationService, RestTemplate restTemplate) {
         this.teamSubscriptionRepository = teamSubscriptionRepository;
         this.notificationService = notificationService;
+        this.restTemplate = restTemplate;
     }
 
     @Scheduled(cron = "0 0 6 * * MON")

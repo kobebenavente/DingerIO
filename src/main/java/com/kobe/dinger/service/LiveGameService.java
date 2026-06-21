@@ -20,12 +20,13 @@ import com.kobe.dinger.model.TeamSubscription;
 
 @Service
 public class LiveGameService {
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
     private NotificationService notificationService;
     private static final Logger log = LoggerFactory.getLogger(LiveGameService.class);
 
-    public LiveGameService(NotificationService notificationService) {
+    public LiveGameService(NotificationService notificationService, RestTemplate restTemplate) {
         this.notificationService = notificationService;
+        this.restTemplate = restTemplate;
     }
 
     public void processGame(Integer gamePk, List<TeamSubscription> subscriptions,  GameState lastGameState, Team homeTeam, Team awayTeam) {

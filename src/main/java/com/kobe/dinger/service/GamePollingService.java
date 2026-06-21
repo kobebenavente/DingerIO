@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,17 +31,19 @@ public class GamePollingService {
     private LiveGameService liveGameService;
     private PreGameService preGameService;
     private PostGameService postGameService;
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
     private Map<Integer, GameState> gameStateSnapshots = new ConcurrentHashMap<>();
-    private ExecutorService executor = Executors.newFixedThreadPool(15);
+    private ThreadPoolTaskExecutor executor;
 
     public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService liveGameService,
-        PreGameService preGameService, PostGameService postGameService){
+        PreGameService preGameService, PostGameService postGameService, RestTemplate restTemplate, @Qualifier("gamePollingExecutor") ThreadPoolTaskExecutor executor){
         this.teamSubscriptionRepository = teamSubscriptionRepository;
         this.teamRepository = teamRepository;
         this.liveGameService = liveGameService;
         this.preGameService = preGameService;
         this.postGameService = postGameService;
+        this.restTemplate = restTemplate;
+        this.executor = executor;
     }
 
     @Scheduled(cron = "*/15 * 7-23,0 * * *", zone = "America/Los_Angeles")

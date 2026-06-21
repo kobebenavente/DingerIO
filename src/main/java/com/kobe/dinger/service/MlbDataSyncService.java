@@ -18,11 +18,12 @@ import jakarta.annotation.PostConstruct;
 public class MlbDataSyncService {
     private TeamRepository teamRepository;
     private PlayerRepository playerRepository;
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
 
-    public MlbDataSyncService(TeamRepository teamRepository, PlayerRepository playerRepository){
+    public MlbDataSyncService(TeamRepository teamRepository, PlayerRepository playerRepository, RestTemplate restTemplate){
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
+        this.restTemplate = restTemplate;
     }
 
     @PostConstruct

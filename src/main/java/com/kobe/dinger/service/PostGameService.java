@@ -19,13 +19,14 @@ import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class PostGameService {
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
     private NotificationService notificationService;
     private TeamRepository teamRepository;
 
-    public PostGameService(NotificationService notificationService, TeamRepository teamRepository) {
+    public PostGameService(NotificationService notificationService, TeamRepository teamRepository, RestTemplate restTemplate) {
         this.notificationService = notificationService;
         this.teamRepository = teamRepository;
+        this.restTemplate = restTemplate;
     }
 
     public void processGameEnd(Integer gamePk, List<TeamSubscription> subscriptions, GameState lastGameState, Team homeTeam, Team awayTeam){
