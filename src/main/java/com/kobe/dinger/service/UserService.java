@@ -16,11 +16,14 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private JwtService jwtService;
+    private NotificationService notificationService;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService){
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService
+            ,NotificationService notificationService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -51,15 +54,17 @@ public class UserService implements UserDetailsService {
         if(passwordEncoder.matches(password, user.getPasswordHash())){
             return jwtService.generateToken(user);
         } else {
-            throw new RuntimeException("Incorrect passowrd!");
+            throw new RuntimeException("Incorrect password!");
         }
     }
 
     public void addDiscordWebhook(String webhook){
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
-        user.setDiscordWebhookUrl(webhook.replaceAll("^\"|\"$", ""));
+        String cleanedWebhook = webhook.replaceAll("^\"|\"$", "");
+        user.setDiscordWebhookUrl(cleanedWebhook);
         userRepository.save(user);
+        notificationService.sendNotification(cleanedWebhook, "Welcome to DingerIO! Your server is now connected ⚾🔔");
     }
 
 }
