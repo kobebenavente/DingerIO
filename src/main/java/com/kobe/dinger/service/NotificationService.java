@@ -2,6 +2,7 @@ package com.kobe.dinger.service;
 
 import java.util.Map;
 
+import com.kobe.dinger.model.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,6 +27,10 @@ public class NotificationService {
         }
         
         postToDiscord(webhookUrl, message);
+    }
+
+    public void sendNotification(String discordWebhookUrl, String message){
+        postToDiscord(discordWebhookUrl, message);
     }
 
     public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
