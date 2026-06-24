@@ -2,10 +2,11 @@ package com.kobe.dinger.service;
 
 import java.util.Map;
 
-import com.kobe.dinger.model.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,9 +16,11 @@ import com.kobe.dinger.model.TeamSubscription;
 @Service
 public class NotificationService {
     private final RestTemplate restTemplate;
+    private final ThreadPoolTaskExecutor notificationExecutor;
 
-    public NotificationService(RestTemplate restTemplate) {
+    public NotificationService(RestTemplate restTemplate, @Qualifier("notificationExecutor") ThreadPoolTaskExecutor notificationExecutor) {
         this.restTemplate = restTemplate;
+        this.notificationExecutor = notificationExecutor;
     }
 
     public void sendNotification(TeamSubscription subscription, String message) {
@@ -25,12 +28,11 @@ public class NotificationService {
         if (webhookUrl == null || webhookUrl.isBlank()) {
             return;
         }
-        
-        postToDiscord(webhookUrl, message);
+        notificationExecutor.submit(() -> postToDiscord(webhookUrl, message));
     }
 
     public void sendNotification(String discordWebhookUrl, String message){
-        postToDiscord(discordWebhookUrl, message);
+        notificationExecutor.submit(() -> postToDiscord(discordWebhookUrl, message));
     }
 
     public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
