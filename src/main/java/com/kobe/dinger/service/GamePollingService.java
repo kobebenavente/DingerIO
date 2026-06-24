@@ -26,14 +26,14 @@ import com.kobe.dinger.repository.TeamSubscriptionRepository;
 @Service
 public class GamePollingService {
     private static final Logger log = LoggerFactory.getLogger(GamePollingService.class);
-    private TeamSubscriptionRepository teamSubscriptionRepository;
-    private TeamRepository teamRepository;
-    private LiveGameService liveGameService;
-    private PreGameService preGameService;
-    private PostGameService postGameService;
-    private RestTemplate restTemplate;
-    private Map<Integer, GameState> gameStateSnapshots = new ConcurrentHashMap<>();
-    private ThreadPoolTaskExecutor executor;
+    private final TeamSubscriptionRepository teamSubscriptionRepository;
+    private final TeamRepository teamRepository;
+    private final LiveGameService liveGameService;
+    private final PreGameService preGameService;
+    private final PostGameService postGameService;
+    private final RestTemplate restTemplate;
+    private final Map<Integer, GameState> gameStateSnapshots = new ConcurrentHashMap<>();
+    private final ThreadPoolTaskExecutor executor;
 
     public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService liveGameService,
         PreGameService preGameService, PostGameService postGameService, RestTemplate restTemplate, @Qualifier("gamePollingExecutor") ThreadPoolTaskExecutor executor){

@@ -12,7 +12,7 @@ import com.kobe.dinger.repository.TeamRepository;
 @Service
 public class TeamService {
 
-    private TeamRepository teamRepository;
+    private final TeamRepository teamRepository;
 
     public TeamService(TeamRepository teamRepository) {
         this.teamRepository = teamRepository;

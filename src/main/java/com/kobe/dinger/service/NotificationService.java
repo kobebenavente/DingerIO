@@ -13,7 +13,7 @@ import com.kobe.dinger.model.TeamSubscription;
 
 @Service
 public class NotificationService {
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
     public NotificationService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;

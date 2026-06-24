@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService implements UserDetailsService {
     
-    private UserRepository userRepository;
-    private BCryptPasswordEncoder passwordEncoder;
-    private JwtService jwtService;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService){
         this.userRepository = userRepository;

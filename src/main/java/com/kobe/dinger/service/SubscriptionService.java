@@ -15,10 +15,10 @@ import com.kobe.dinger.repository.UserRepository;
 
 @Service
 public class SubscriptionService {
-    private TeamSubscriptionRepository teamSubscriptionRepository;
-    private UserRepository userRepository;
-    private TeamRepository teamRepository;
-    private NotificationService notificationService;
+    private final TeamSubscriptionRepository teamSubscriptionRepository;
+    private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
+    private final NotificationService notificationService;
 
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository, TeamSubscriptionRepository teamSubscriptionRepository, 

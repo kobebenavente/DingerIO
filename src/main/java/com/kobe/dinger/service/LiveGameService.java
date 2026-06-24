@@ -20,8 +20,8 @@ import com.kobe.dinger.model.TeamSubscription;
 
 @Service
 public class LiveGameService {
-    private RestTemplate restTemplate;
-    private NotificationService notificationService;
+    private final RestTemplate restTemplate;
+    private final NotificationService notificationService;
     private static final Logger log = LoggerFactory.getLogger(LiveGameService.class);
 
     public LiveGameService(NotificationService notificationService, RestTemplate restTemplate) {

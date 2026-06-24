@@ -19,9 +19,9 @@ import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class PostGameService {
-    private RestTemplate restTemplate;
-    private NotificationService notificationService;
-    private TeamRepository teamRepository;
+    private final RestTemplate restTemplate;
+    private final NotificationService notificationService;
+    private final TeamRepository teamRepository;
 
     public PostGameService(NotificationService notificationService, TeamRepository teamRepository, RestTemplate restTemplate) {
         this.notificationService = notificationService;

@@ -18,7 +18,7 @@ import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class PreGameService{
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
     public PreGameService(NotificationService notificationService, TeamRepository teamRepository){
         this.notificationService = notificationService;

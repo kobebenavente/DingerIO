@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/api/subscription")
 public class SubscriptionController {
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
     public SubscriptionController(SubscriptionService subscriptionService){
         this.subscriptionService = subscriptionService;

@@ -24,9 +24,9 @@ import com.kobe.dinger.repository.TeamSubscriptionRepository;
 @Service
 public class WeeklyScheduleService {
     private static final Logger log = LoggerFactory.getLogger(WeeklyScheduleService.class);
-    private TeamSubscriptionRepository teamSubscriptionRepository;
-    private NotificationService notificationService;
-    private RestTemplate restTemplate;
+    private final TeamSubscriptionRepository teamSubscriptionRepository;
+    private final NotificationService notificationService;
+    private final RestTemplate restTemplate;
 
     public WeeklyScheduleService(TeamSubscriptionRepository teamSubscriptionRepository, NotificationService notificationService, RestTemplate restTemplate) {
         this.teamSubscriptionRepository = teamSubscriptionRepository;

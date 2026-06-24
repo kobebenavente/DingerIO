@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 @RequestMapping("/api/auth")
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService){
         this.userService = userService;

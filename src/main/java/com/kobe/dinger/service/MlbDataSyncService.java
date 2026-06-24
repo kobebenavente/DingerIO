@@ -16,9 +16,9 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class MlbDataSyncService {
-    private TeamRepository teamRepository;
-    private PlayerRepository playerRepository;
-    private RestTemplate restTemplate;
+    private final TeamRepository teamRepository;
+    private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     public MlbDataSyncService(TeamRepository teamRepository, PlayerRepository playerRepository, RestTemplate restTemplate){
         this.teamRepository = teamRepository;
