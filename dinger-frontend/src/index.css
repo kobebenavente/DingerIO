@@ -4,8 +4,13 @@
     box-sizing: border-box;
 }
 
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+}
+
 body {
-    background-color: #737373;
+    background-color: #4a4a4a;
 }
 
 #root {
