@@ -106,7 +106,7 @@ public class PostGameService {
 
             if(events.contains(NotificationEvent.END_GAME_STANDINGS) && events.contains(NotificationEvent.GAME_END)){
                 if(subbedTeamIsHomeTeam){
-                    gameEndMessage.append("\n" + generateStandingsString(sub.getTeam().getDivisionId(), homeTeamStandings, sub.getTeam().getMlbTeamId()));
+                    gameEndMessage.append("\n").append(generateStandingsString(sub.getTeam().getDivisionId(), homeTeamStandings, sub.getTeam().getMlbTeamId()));
                 } else {
                     if(isSameLeague){
                         gameEndMessage.append("\n" + generateStandingsString(sub.getTeam().getDivisionId(), homeTeamStandings, sub.getTeam().getMlbTeamId()));
