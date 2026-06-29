@@ -12,6 +12,8 @@ public class GameState {
     private boolean tracked;
     private boolean winsAndLossesSet;
     private boolean gameEnded;
+    private boolean gameDayHomeRosterSent;
+    private boolean gameDayAwayRosterSent;
     private Integer homeWins; 
     private Integer homeLosses;
     private Integer awayWins;
@@ -185,6 +187,22 @@ public class GameState {
 
     public void setWinsAndLossesSet(boolean isWinsAndLossesSet) {
         this.winsAndLossesSet = isWinsAndLossesSet;
+    }
+
+    public boolean isGameDayHomeRosterSent() {
+        return gameDayHomeRosterSent;
+    }
+
+    public void setGameDayHomeRosterSent(boolean gameDayHomeRosterSent) {
+        this.gameDayHomeRosterSent = gameDayHomeRosterSent;
+    }
+
+    public boolean isGameDayAwayRosterSent() {
+        return gameDayAwayRosterSent;
+    }
+
+    public void setGameDayAwayRosterSent(boolean gameDayAwayRosterSent) {
+        this.gameDayAwayRosterSent = gameDayAwayRosterSent;
     }
 
 }

@@ -1,7 +1,9 @@
 package com.kobe.dinger.DTOs.schedule;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DateDTO {
     private List<GameDTO> games;
     private String date;

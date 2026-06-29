@@ -1,5 +1,8 @@
 package com.kobe.dinger.DTOs.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SubscriptionRequest {
     
     private Integer teamId;

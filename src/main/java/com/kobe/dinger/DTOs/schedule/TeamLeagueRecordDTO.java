@@ -1,5 +1,8 @@
 package com.kobe.dinger.DTOs.schedule;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TeamLeagueRecordDTO {
     int wins;
     int losses;

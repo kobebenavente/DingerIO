@@ -1,9 +1,11 @@
 package com.kobe.dinger.DTOs.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Set;
 
 import com.kobe.dinger.model.NotificationEvent;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserSubscriptionResponse {
     
     private Set<NotificationEvent> subbedEvents;

@@ -1,7 +1,9 @@
 package com.kobe.dinger.DTOs.livegamefeed;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PlaysDTO {
     List<AllPlaysDTO> allPlays;
     List<Integer> scoringPlays;

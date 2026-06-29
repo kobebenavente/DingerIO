@@ -1,7 +1,9 @@
 package com.kobe.dinger.DTOs.standings;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RecordsDTO {
     private List<TeamRecordsDTO> teamRecords;
     private StandingsDivisionDTO division;

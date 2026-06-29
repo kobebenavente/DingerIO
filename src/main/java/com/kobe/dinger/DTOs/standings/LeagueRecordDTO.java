@@ -1,5 +1,8 @@
 package com.kobe.dinger.DTOs.standings;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LeagueRecordDTO {
     private int wins;
     private int losses;

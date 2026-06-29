@@ -1,5 +1,8 @@
 package com.kobe.dinger.DTOs.sync;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PlayerDTO {
     private Integer id;
     private String fullName;
