@@ -39,10 +39,18 @@ public class NotificationService {
 
     public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
         if (subbedTeamIsHomeTeam) {
-            return homeTeam.getTeamName() + " - " + currentHomeScore + " | " + awayTeam.getTeamName() + " - " + currentAwayScore;
+            return homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + ": " + currentHomeScore + " | "
+                    + awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + ": " + currentAwayScore;
         } else {
-            return awayTeam.getTeamName() + " - " + currentAwayScore + " | " + homeTeam.getTeamName() + " - " + currentHomeScore;
+            return awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + ": " + currentAwayScore + " | "
+                    + homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + ": " + currentHomeScore;
         }
+    }
+
+    public void sendEmbed(TeamSubscription subscription, String description) {
+        String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
+        if (webhookUrl == null || webhookUrl.isBlank()) return;
+        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, tempDefaultColor));
     }
 
     public void sendEmbed(TeamSubscription subscription, String title, String description) {
@@ -61,14 +69,32 @@ public class NotificationService {
         restTemplate.postForObject(webhookUrl, request, String.class);
     }
 
+    private void postEmbedToDiscord(String webhookUrl, String description, int color) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, Object> footer = Map.of("text", "DingerIO • Live MLB Updates",
+                "icon_url", "https://github.com/kobebenavente/DingerIO/blob/main/dinger-frontend/public/bell_logo.png?raw=true");
+        Map<String, Object> embed = Map.of(
+                "description", description,
+                "color", color,
+                "footer", footer
+        );
+        Map<String, Object> body = Map.of("embeds", List.of(embed));
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.postForObject(webhookUrl, request, String.class);
+    }
+
     private void postEmbedToDiscord(String webhookUrl, String title, String description, int color) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
+        Map<String, Object> footer = Map.of("text", "DingerIO • Live MLB Updates",
+                "icon_url", "https://github.com/kobebenavente/DingerIO/blob/main/dinger-frontend/public/bell_logo.png?raw=true");
         Map<String, Object> embed = Map.of(
             "title", title,
             "description", description,
-            "color", color
+            "color", color,
+            "footer", footer
         );
         Map<String, Object> body = Map.of("embeds", List.of(embed));
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerSeasonStatsBattingDTO;
+import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerSeasonStatsPitchingDTO;
 import com.kobe.dinger.DTOs.livegamefeed.GameDataPlayersDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LiveFeedResponseDTO;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,8 @@ public class PreGameService{
         long minutesUntilGame = ChronoUnit.MINUTES.between(now, gameTime);
 
         boolean shouldSendGameStarting = !lastGameState.isGameStartingNotificationSent() && minutesUntilGame <= 2 && minutesUntilGame > 0;
-        boolean shouldSendGameDayReminder = !lastGameState.isGameStartingSoonNotificationSent() && minutesUntilGame <= 180 && minutesUntilGame > 60;
+        boolean isSevenAmWindow = now.getHour() == 7 && now.getMinute() < 15;
+        boolean shouldSendGameDayReminder = !lastGameState.isGameDayReminderSent() && isSevenAmWindow && minutesUntilGame > 0;
 
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
         if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null
@@ -53,14 +55,18 @@ public class PreGameService{
         }
 
         List<Integer> homeBattingOrderPlayerIds = feed.getLiveData().getBoxscore().getTeams().getHome().getBattingOrder();
-        List<LineupPlayer> homeBattingOrderLineupPlayers = new ArrayList<>();
+        List<Integer> homePitchingPlayerIds = feed.getLiveData().getBoxscore().getTeams().getHome().getPitchers();
+        LineupPitcher homeStartingPitcher = null;
+        List<LineupBatter> homeBattingOrderLineupBatters = new ArrayList<>();
         boolean homeLineupAnnounced = false;
         List<Integer> awayBattingOrderPlayerIds = feed.getLiveData().getBoxscore().getTeams().getAway().getBattingOrder();
-        List<LineupPlayer> awayBattingOrderLineupPlayers = new ArrayList<>();
+        List<Integer> awayPitchingPlayerIds = feed.getLiveData().getBoxscore().getTeams().getAway().getPitchers();
+        LineupPitcher awayStartingPitcher = null;
+        List<LineupBatter> awayBattingOrderLineupBatters = new ArrayList<>();
         boolean awayLineupAnnounced = false;
 
         if(!lastGameState.isGameDayHomeRosterSent()){
-            if(!homeBattingOrderPlayerIds.isEmpty()){
+            if(!homeBattingOrderPlayerIds.isEmpty() && !homePitchingPlayerIds.isEmpty()){
                 for (Integer id : homeBattingOrderPlayerIds) {
                     BoxScorePlayerSeasonStatsBattingDTO playerSeasonStats = feed.getLiveData().getBoxscore().getTeams()
                             .getHome().getPlayers().get("ID" + id).getSeasonStats().getBatting();
@@ -74,16 +80,26 @@ public class PreGameService{
                     String useLastName = playerUseNamesAndHandSides.getUseLastName();
                     String positionAbbreviation = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers()
                                     .get("ID" + id).getPosition().getAbbreviation();
-                    homeBattingOrderLineupPlayers.add(new LineupPlayer(useName, useLastName, positionAbbreviation, avg, ops, homeRuns, rbi));
-                    homeLineupAnnounced = true;
+                    homeBattingOrderLineupBatters.add(new LineupBatter(useName, useLastName, positionAbbreviation, avg, ops, homeRuns, rbi));
                 }
+                BoxScorePlayerSeasonStatsPitchingDTO pitcherSeasonStats = feed.getLiveData().getBoxscore().getTeams()
+                        .getHome().getPlayers().get("ID" + homePitchingPlayerIds.getFirst()).getSeasonStats().getPitching();
+                GameDataPlayersDTO pitcherUseNamesAndHandSides = feed.getGameData().getPlayers().get("ID"
+                        + homePitchingPlayerIds.getFirst());
+                String useName = pitcherUseNamesAndHandSides.getUseName();
+                String useLastName = pitcherUseNamesAndHandSides.getUseLastName();
+                Integer wins = pitcherSeasonStats.getWins();
+                Integer losses = pitcherSeasonStats.getLosses();
+                String whip = pitcherSeasonStats.getWhip();
+                String era = pitcherSeasonStats.getEra();
+                Integer strikeOuts = pitcherSeasonStats.getStrikeOuts();
+                homeStartingPitcher = new LineupPitcher(useName, useLastName, wins, losses, whip, era, strikeOuts);
+                homeLineupAnnounced = true;
             }
         }
 
         if(!lastGameState.isGameDayAwayRosterSent()){
-
-            if(!awayBattingOrderPlayerIds.isEmpty()){
-
+            if(!awayBattingOrderPlayerIds.isEmpty() && !awayPitchingPlayerIds.isEmpty()){
                 for (Integer id : awayBattingOrderPlayerIds) {
                     BoxScorePlayerSeasonStatsBattingDTO playerSeasonStats = feed.getLiveData().getBoxscore().getTeams()
                             .getAway().getPlayers().get("ID" + id).getSeasonStats().getBatting();
@@ -97,10 +113,22 @@ public class PreGameService{
                     String useLastName = playerUseNamesAndHandSides.getUseLastName();
                     String positionAbbreviation = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
                             .get("ID" + id).getPosition().getAbbreviation();
-                    awayBattingOrderLineupPlayers.add(new LineupPlayer(useName, useLastName, positionAbbreviation, avg, ops, homeRuns, rbi));
-                    awayLineupAnnounced = true;
+                    awayBattingOrderLineupBatters.add(new LineupBatter(useName, useLastName, positionAbbreviation, avg, ops, homeRuns, rbi));
                 }
-                }
+                BoxScorePlayerSeasonStatsPitchingDTO pitcherSeasonStats = feed.getLiveData().getBoxscore().getTeams()
+                        .getAway().getPlayers().get("ID" + awayPitchingPlayerIds.getFirst()).getSeasonStats().getPitching();
+                GameDataPlayersDTO pitcherUseNamesAndHandSides = feed.getGameData().getPlayers().get("ID"
+                        + awayPitchingPlayerIds.getFirst());
+                String useName = pitcherUseNamesAndHandSides.getUseName();
+                String useLastName = pitcherUseNamesAndHandSides.getUseLastName();
+                Integer wins = pitcherSeasonStats.getWins();
+                Integer losses = pitcherSeasonStats.getLosses();
+                String whip = pitcherSeasonStats.getWhip();
+                String era = pitcherSeasonStats.getEra();
+                Integer strikeOuts = pitcherSeasonStats.getStrikeOuts();
+                awayStartingPitcher = new LineupPitcher(useName, useLastName, wins, losses, whip, era, strikeOuts);
+                awayLineupAnnounced = true;
+            }
         }
         /*
          -use live response to check if game has batting order filled yet (its an array)
@@ -113,7 +141,7 @@ public class PreGameService{
          */
 
         if (shouldSendGameStarting) lastGameState.setGameStartingNotificationSent(true);
-        if (shouldSendGameDayReminder) lastGameState.setGameStartingSoonNotificationSent(true);
+        if (shouldSendGameDayReminder) lastGameState.setGameDayReminderSent(true);
 
         for (TeamSubscription sub : subscriptions) {
             boolean subbedTeamIsHomeTeam = sub.getTeam().equals(homeTeam);
@@ -134,12 +162,14 @@ public class PreGameService{
 
             if(!lastGameState.isGameDayHomeRosterSent() && subbedTeamIsHomeTeam && homeLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
-                notificationService.sendNotification(sub, generateLineupMessage(homeBattingOrderLineupPlayers));
+                String title ="🔔 Pre-Game Alert — " + homeTeam.getTeamName() + " Starting \nLineup Confirmed!";
+                notificationService.sendEmbed(sub, title, generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher));
             }
 
             if(!lastGameState.isGameDayAwayRosterSent() && !subbedTeamIsHomeTeam && awayLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
-                notificationService.sendNotification(sub, generateLineupMessage(awayBattingOrderLineupPlayers));
+                String title ="🔔 Pre-Game Alert — " + awayTeam.getTeamName() + " Starting \nLineup Confirmed!";
+                notificationService.sendEmbed(sub, title, generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher));
             }
         }
         if (homeLineupAnnounced) {
@@ -149,7 +179,7 @@ public class PreGameService{
             lastGameState.setGameDayAwayRosterSent(true);
         }
     }
-    public static class LineupPlayer {
+    public static class LineupBatter {
         String useName;
         String useLastName;
         String avg;
@@ -158,7 +188,7 @@ public class PreGameService{
         Integer homeRuns;
         Integer rbi;
 
-        public LineupPlayer(String useName, String useLastName, String positionAbbreviation, String avg, String ops
+        public LineupBatter(String useName, String useLastName, String positionAbbreviation, String avg, String ops
                 , Integer homeRuns, Integer rbi) {
             this.useName = useName;
             this.useLastName = useLastName;
@@ -170,28 +200,53 @@ public class PreGameService{
         }
     }
 
-    public String generateLineupMessage(List<LineupPlayer> lineupPlayers){
+    public static class LineupPitcher {
+        String useName;
+        String useLastName;
+        String winLoss;
+        String whip;
+        String era;
+        Integer strikeOuts;
+
+        public LineupPitcher(String useName, String useLastName, Integer wins, Integer losses, String whip, String era, Integer strikeOuts){
+            this.useName = useName;
+            this.useLastName = useLastName;
+            this.winLoss = wins.toString() + "-" + losses.toString();
+            this.whip = whip;
+            this.era = era;
+            this.strikeOuts = strikeOuts;
+        }
+    }
+
+    public String generateLineupMessage(List<LineupBatter> lineupBatters, LineupPitcher lineupPitcher){
         StringBuilder stringToSend = new StringBuilder("```\n");
         int maxPositionPlusNameLength = 16;
-        stringToSend.append("----------------- AVG HR RBI OPS\n");
+        String pitcherName = lineupPitcher.useName + " " + lineupPitcher.useLastName;
+        if(9 + pitcherName.length() > 33){
+            pitcherName = lineupPitcher.useName.charAt(0) + ". " + lineupPitcher.useLastName;
+        }
+        stringToSend.append("Pitcher: ").append(pitcherName).append("\n").append(lineupPitcher.winLoss).append(" W/L | ")
+                .append(lineupPitcher.era).append(" ERA | ").append(lineupPitcher.strikeOuts).append(" SO\n");
+        stringToSend.append("--------------------------------\n");
+        stringToSend.append(" Batting Order    AVG HR RBI OPS\n");
         String rowFormat = "%-" + maxPositionPlusNameLength + "s %s %2d %-2d %s\n";
-        for(LineupPlayer lineupPlayer : lineupPlayers){
-            String defaultName = lineupPlayer.useName.charAt(0) + ". " + lineupPlayer.useLastName;
+        for(LineupBatter lineupBatter : lineupBatters){
+            String defaultName = lineupBatter.useName.charAt(0) + ". " + lineupBatter.useLastName;
             String name;
             if(3 + defaultName.length() > maxPositionPlusNameLength){
-                name = lineupPlayer.useName + " " + lineupPlayer.useLastName.charAt(0) + ".";
+                name = lineupBatter.useName + " " + lineupBatter.useLastName.charAt(0) + ".";
             } else {
                 name = defaultName;
             }
 
-            String finalName = String.format("%-3s", lineupPlayer.positionAbbreviation) + " " + name;
+            String finalName = String.format("%-3s", lineupBatter.positionAbbreviation) + " " + name;
 
-            if(lineupPlayer.ops.length() > 4){
-                lineupPlayer.ops = lineupPlayer.ops.substring(0, 4);
+            if(lineupBatter.ops.length() > 4){
+                lineupBatter.ops = lineupBatter.ops.substring(0, 4);
             }
 
-            stringToSend.append(String.format(rowFormat, finalName, lineupPlayer.avg, lineupPlayer.homeRuns, lineupPlayer.rbi
-                    , lineupPlayer.ops));
+            stringToSend.append(String.format(rowFormat, finalName, lineupBatter.avg, lineupBatter.homeRuns, lineupBatter.rbi
+                    , lineupBatter.ops));
         }
         stringToSend.append("```");
         return stringToSend.toString();

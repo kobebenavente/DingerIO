@@ -8,6 +8,7 @@ import java.util.Map;
 public class BoxScoreTeamDTO {
     private Map<String, BoxScorePlayerDTO> players;
     private List<Integer> battingOrder;
+    private List<Integer> pitchers;
 
     public List<Integer> getBattingOrder() {
         return battingOrder;
@@ -21,4 +22,12 @@ public class BoxScoreTeamDTO {
     public void setPlayers(Map<String, BoxScorePlayerDTO> players) {
         this.players = players;
     }
+    public List<Integer> getPitchers() {
+        return pitchers;
+    }
+    public void setPitchers(List<Integer> pitchers) {
+        this.pitchers = pitchers;
+    }
+
+
 }

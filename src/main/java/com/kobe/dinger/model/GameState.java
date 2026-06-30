@@ -8,7 +8,7 @@ public class GameState {
     private String inningHalf;
     private List<Integer> scoringPlays;
     private boolean gameStartingNotificationSent;
-    private boolean gameStartingSoonNotificationSent;
+    private boolean gameDayReminderSent;
     private boolean tracked;
     private boolean winsAndLossesSet;
     private boolean gameEnded;
@@ -29,7 +29,7 @@ public class GameState {
     public GameState() {
         this.gameStartingNotificationSent = false;
         this.tracked = false;
-        this.gameStartingSoonNotificationSent = false;
+        this.gameDayReminderSent = false;
         this.winsAndLossesSet = false;
         this.startingPitcherMessageSent = false;
         this.gameEnded = false;
@@ -142,11 +142,11 @@ public class GameState {
         this.tracked = isGameTracked;
     }
 
-    public boolean isGameStartingSoonNotificationSent(){
-        return gameStartingSoonNotificationSent;
+    public boolean isGameDayReminderSent(){
+        return gameDayReminderSent;
     }
-    public void setGameStartingSoonNotificationSent(boolean isGameStartingSoonNotificationSent){
-        this.gameStartingSoonNotificationSent = isGameStartingSoonNotificationSent;
+    public void setGameDayReminderSent(boolean isGameStartingSoonNotificationSent){
+        this.gameDayReminderSent = isGameStartingSoonNotificationSent;
     }
 
     public Integer getHomeWins() {
