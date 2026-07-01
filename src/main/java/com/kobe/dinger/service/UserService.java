@@ -1,5 +1,6 @@
 package com.kobe.dinger.service;
 
+import com.kobe.dinger.model.TeamSubscription;
 import com.kobe.dinger.model.User;
 import com.kobe.dinger.repository.*;
 
@@ -17,13 +18,15 @@ public class UserService implements UserDetailsService {
     private BCryptPasswordEncoder passwordEncoder;
     private JwtService jwtService;
     private NotificationService notificationService;
+    private TeamSubscriptionRepository teamSubscriptionRepository;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService
-            ,NotificationService notificationService){
+            ,NotificationService notificationService, TeamSubscriptionRepository teamSubscriptionRepository){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.notificationService = notificationService;
+        this.teamSubscriptionRepository = teamSubscriptionRepository;
     }
 
     @Override
@@ -64,7 +67,12 @@ public class UserService implements UserDetailsService {
         String cleanedWebhook = webhook.replaceAll("^\"|\"$", "");
         user.setDiscordWebhookUrl(cleanedWebhook);
         userRepository.save(user);
-        notificationService.sendNotification(cleanedWebhook, "Welcome to DingerIO! Your server is now connected ⚾🔔");
+        TeamSubscription subscription = teamSubscriptionRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
+        notificationService.sendEmbed(subscription, "## 👋 Greetings! \n Your server has " +
+                "been successfully connected and you will now receive updates for the "
+                + subscription.getTeam().getTeamName() + " " + subscription.getTeam().getTeamEmoji()
+                + "\n\n To change notification preferences, use your dashboard at DingerIO.com");
     }
 
 }

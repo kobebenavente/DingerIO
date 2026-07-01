@@ -40,10 +40,10 @@ public class NotificationService {
     public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
         if (subbedTeamIsHomeTeam) {
             return homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + ": " + currentHomeScore + " | "
-                    + awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + ": " + currentAwayScore;
+                    + awayTeam.getTeamName() + ": " + currentAwayScore  + " " +  awayTeam.getTeamEmoji();
         } else {
             return awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + ": " + currentAwayScore + " | "
-                    + homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + ": " + currentHomeScore;
+                     + homeTeam.getTeamName() + ": " + currentHomeScore + " " + homeTeam.getTeamEmoji();
         }
     }
 

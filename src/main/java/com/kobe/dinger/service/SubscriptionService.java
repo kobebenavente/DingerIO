@@ -38,14 +38,15 @@ public class SubscriptionService {
         return teamSubscription;
     }
 
-    public void changeTeamSubscription(Integer teamId){
+    public void changeTeamSubscription(Integer teamId) {
         Integer userId = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team does not exist"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User does not exist"));
         TeamSubscription subscription = teamSubscriptionRepository.findByUser(user).orElseThrow(() -> new RuntimeException("User is not subscribed to a team"));
-        subscription.setTeam(team);        
+        subscription.setTeam(team);
         teamSubscriptionRepository.save(subscription);
-        notificationService.sendNotification(subscription, "🔔⚾ Changed team subscription to the " + team.getTeamName() + " " + team.getTeamEmoji());
+        notificationService.sendEmbed(subscription, "## ⚙ Team Change Successful: \n Your subscribed team has "
+                + "been changed to the " + team.getTeamName() + " " + team.getTeamEmoji());
     }
 
 
