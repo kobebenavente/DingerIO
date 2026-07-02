@@ -223,13 +223,25 @@ public class LiveGameService {
             if (subbedTeamIsHomeTeam && homeTeamScored || !subbedTeamIsHomeTeam && awayTeamScored) {
                 messageTitle = "## 💥 HOME RUN! 💥 — ";
             } else {
-                messageTitle = "## 🚨 " + awayTeam.getTeamName() + " — ";
+                if(homeTeamScored){
+                    messageTitle = "## 🚨 " + homeTeam.getTeamName() + " Scored — ";
+                } else {
+                    messageTitle = "## 🚨 " + awayTeam.getTeamName() + " Scored — ";
+                }
             }
         } else {
             if (subbedTeamIsHomeTeam && homeTeamScored || !subbedTeamIsHomeTeam && awayTeamScored) {
-                messageTitle = "## 🎉 " + homeTeam.getTeamName() + " Score! — ";
+                if(homeTeamScored){
+                    messageTitle = "## 🎉 " + homeTeam.getTeamName() + " Scored! — ";
+                } else {
+                    messageTitle = "## 🎉 " + awayTeam.getTeamName() + " Scored! — ";
+                }
             } else {
-                messageTitle = "## 🚨 " + awayTeam.getTeamName() + " Score — ";
+                if(homeTeamScored){
+                    messageTitle = "## 🚨 " + homeTeam.getTeamName() + " Scored — ";
+                } else {
+                    messageTitle = "## 🚨 " + awayTeam.getTeamName() + " Scored — ";
+                }
             }
         }
         return messageTitle;
