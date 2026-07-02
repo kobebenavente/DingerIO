@@ -12,6 +12,7 @@ public class GameState {
     private boolean tracked;
     private boolean winsAndLossesSet;
     private boolean gameEnded;
+    private boolean gameEndedMessageSent;
     private boolean gameDayHomeRosterSent;
     private boolean gameDayAwayRosterSent;
     private Integer homeWins; 
@@ -33,6 +34,7 @@ public class GameState {
         this.winsAndLossesSet = false;
         this.startingPitcherMessageSent = false;
         this.gameEnded = false;
+        this.gameEndedMessageSent = false;
     }
 
     public boolean isGameEnded() {
@@ -204,5 +206,14 @@ public class GameState {
     public void setGameDayAwayRosterSent(boolean gameDayAwayRosterSent) {
         this.gameDayAwayRosterSent = gameDayAwayRosterSent;
     }
+
+    public boolean isGameEndedMessageSent() {
+        return gameEndedMessageSent;
+    }
+
+    public void setGameEndedMessageSent(boolean gameEndedMessageSent) {
+        this.gameEndedMessageSent = gameEndedMessageSent;
+    }
+
 
 }
