@@ -99,7 +99,7 @@ public class GamePollingService {
                         setWinLossRecord(lastGameState, game);
                     }
                     liveGameService.processGame(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
-                } else {
+                } else if ("Warm-up".equals(game.getStatus().getDetailedState()) || "Pre-Game".equals(game.getStatus().getDetailedState())){
                     if(!gameStateSnapshots.containsKey(gamePk)){
                         gameStateSnapshots.put(gamePk, new GameState());
                     }
