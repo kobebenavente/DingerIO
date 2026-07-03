@@ -80,12 +80,12 @@ public class PostGameService {
             }
         }
 
-        boolean standingsUpdated = false;
+        boolean homeRecordChanged = !homeTeamWins.equals(lastGameState.getHomeWins())
+                || !homeTeamLosses.equals(lastGameState.getHomeLosses());
+        boolean awayRecordChanged = !awayTeamWins.equals(lastGameState.getAwayWins())
+                || !awayTeamLosses.equals(lastGameState.getAwayLosses());
         // standings haven't updated yet. retry on next poll.
-        if ((!homeTeamWins.equals(lastGameState.getHomeWins()) || !homeTeamLosses.equals(lastGameState.getHomeLosses()))
-                && (!awayTeamWins.equals(lastGameState.getAwayWins()) || !awayTeamLosses.equals(lastGameState.getAwayLosses()))) {
-            standingsUpdated = true;
-        }
+        boolean standingsUpdated = homeRecordChanged && awayRecordChanged;
 
         String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
@@ -102,8 +102,8 @@ public class PostGameService {
             StringBuilder gameEndMessage = new StringBuilder();
             StringBuilder standingsMessage = new StringBuilder();
             Set<NotificationEvent> events = sub.getNotificationEvents();
-            if (events.contains(NotificationEvent.GAME_END) && !lastGameState.isGameEndedMessageSent()
-                    && !standingsUpdated) {
+            //GAME ENDED MESSAGE
+            if (events.contains(NotificationEvent.GAME_END) && !lastGameState.isGameEndedMessageSent()) {
 
                 // ## 🔔 Game Ended — 🔱 Mariners: 4 | 🗽 Yankees: 2
                 gameEndMessage.append("## 🔔 Game Ended — ")
@@ -113,6 +113,7 @@ public class PostGameService {
                 notificationService.sendEmbed(sub, gameEndMessage.toString());
             }
 
+            //GAME ENDED - UPDATED STANDINGS MESSAGE
             if (events.contains(NotificationEvent.END_GAME_STANDINGS) && standingsUpdated) {
                 if (subbedTeamIsHomeTeam || isSameLeague) {
                     standingsMessage.append(generateStandingsString(sub.getTeam().getDivisionId()
