@@ -162,14 +162,22 @@ public class PreGameService{
 
             if(!lastGameState.isGameDayHomeRosterSent() && subbedTeamIsHomeTeam && homeLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
-                String title ="🔔 Pre-Game Alert — " + homeTeam.getTeamName() + " Starting \nLineup Confirmed!";
-                notificationService.sendEmbed(sub, title, generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher));
+
+                String message = "## 🔔 Pre-Game Alert — " + homeTeam.getTeamName() +
+                        " Starting Lineup Confirmed!\n" +
+                        generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher);
+
+                notificationService.sendEmbed(sub, message);
             }
 
             if(!lastGameState.isGameDayAwayRosterSent() && !subbedTeamIsHomeTeam && awayLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
-                String title ="🔔 Pre-Game Alert — " + awayTeam.getTeamName() + " Starting \nLineup Confirmed!";
-                notificationService.sendEmbed(sub, title, generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher));
+
+                String message = "## 🔔 Pre-Game Alert — " + awayTeam.getTeamName() +
+                        " Starting Lineup Confirmed!\n" +
+                        generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher);
+
+                notificationService.sendEmbed(sub, message);
             }
         }
         if (homeLineupAnnounced) {
