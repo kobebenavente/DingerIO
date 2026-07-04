@@ -11,6 +11,7 @@ import java.util.Set;
 import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerSeasonStatsBattingDTO;
 import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerSeasonStatsPitchingDTO;
 import com.kobe.dinger.DTOs.livegamefeed.GameDataPlayersDTO;
+import com.kobe.dinger.DTOs.livegamefeed.GameDataPlayersPitchSideDTO;
 import com.kobe.dinger.DTOs.livegamefeed.LiveFeedResponseDTO;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -152,12 +153,41 @@ public class PreGameService{
                 notificationService.sendNotification(sub, sub.getTeam().getTeamName() + " vs " + opponent + " is now starting");
             }
 
+            // GAME DAY MESSAGE
             if (shouldSendGameDayReminder && subNotificationEvents.contains(NotificationEvent.GAME_DAY_REMINDER)) {
                 java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter.ofPattern("h:mm a");
-                String pst = gameTime.withZoneSameInstant(ZoneId.of("America/Los_Angeles")).format(timeFormatter) + " PST";
+                String pdt = gameTime.withZoneSameInstant(ZoneId.of("America/Los_Angeles")).format(timeFormatter) + " PDT";
                 String est = gameTime.withZoneSameInstant(ZoneId.of("America/New_York")).format(timeFormatter) + " EST";
-                String opponent = subbedTeamIsHomeTeam ? awayTeam.getTeamName() : homeTeam.getTeamName();
-                notificationService.sendNotification(sub, sub.getTeam().getTeamName() + " play the " + opponent + " today at " + pst + " / " + est);
+                String location = gameInfo.getVenue().getName();
+
+                GameDataPlayersDTO homePitcherUseNamesAndHandSide = feed.getGameData().getPlayers().get("ID"
+                        + feed.getGameData().getProbablePitchers().getHome().getId());
+
+                GameDataPlayersDTO awayPitcherUseNamesAndHandSide = feed.getGameData().getPlayers().get("ID"
+                        + feed.getGameData().getProbablePitchers().getAway().getId());
+
+                BoxScorePlayerSeasonStatsPitchingDTO homePitcherSeasonStats = feed.getLiveData().getBoxscore().getTeams()
+                        .getHome().getPlayers().get("ID" + feed.getGameData().getProbablePitchers().getHome().getId()).getSeasonStats().getPitching();
+
+                BoxScorePlayerSeasonStatsPitchingDTO awayPitcherSeasonStats = feed.getLiveData().getBoxscore().getTeams()
+                        .getAway().getPlayers().get("ID" + feed.getGameData().getProbablePitchers().getAway().getId()).getSeasonStats().getPitching();
+
+                StringBuilder message = new StringBuilder("## Game Day! " + awayTeam.getTeamName() + " @ " + homeTeam.getTeamName()
+                        + "\n" + pdt + "Start Time: " + pdt + " / " + est + "\n" + "Location: " + location + "\n"
+                        + "## ⚾ Probable Pitcher Matchup:\n");
+
+                if (subbedTeamIsHomeTeam) {
+                    appendPitcherMatchupInfo(message, "### ", feed.getGameData().getProbablePitchers().getHome().getFullName(),
+                            homePitcherUseNamesAndHandSide.getPitchSide(), homePitcherSeasonStats);
+                    appendPitcherMatchupInfo(message, "\n ### ", feed.getGameData().getProbablePitchers().getAway().getFullName(),
+                            awayPitcherUseNamesAndHandSide.getPitchSide(), awayPitcherSeasonStats);
+                } else {
+                    appendPitcherMatchupInfo(message, "\n ### ", feed.getGameData().getProbablePitchers().getAway().getFullName(),
+                            awayPitcherUseNamesAndHandSide.getPitchSide(), awayPitcherSeasonStats);
+                    appendPitcherMatchupInfo(message, "### ", feed.getGameData().getProbablePitchers().getHome().getFullName(),
+                            homePitcherUseNamesAndHandSide.getPitchSide(), homePitcherSeasonStats);
+                }
+                notificationService.sendEmbed(sub, message.toString());
             }
 
             if(!lastGameState.isGameDayHomeRosterSent() && subbedTeamIsHomeTeam && homeLineupAnnounced
@@ -224,6 +254,19 @@ public class PreGameService{
             this.era = era;
             this.strikeOuts = strikeOuts;
         }
+    }
+
+    private void appendPitcherMatchupInfo(StringBuilder message, String headerPrefix, String fullName,
+                                           GameDataPlayersPitchSideDTO pitchSide,
+                                           BoxScorePlayerSeasonStatsPitchingDTO seasonStats){
+        message.append(headerPrefix).append(fullName)
+        .append("(").append(pitchSide).append("): \n")
+        .append("IP: ").append(seasonStats.getInningsPitched()).append("\n")
+        .append("W-L: ").append(seasonStats.getWins()).append(" - ")
+        .append(seasonStats.getLosses()).append("\n")
+        .append("ERA: ").append(seasonStats.getEra()).append("\n")
+        .append("WHIP: ").append(seasonStats.getWhip()).append("\n")
+        .append("K: ").append(seasonStats.getStrikeOuts());
     }
 
     public String generateLineupMessage(List<LineupBatter> lineupBatters, LineupPitcher lineupPitcher){
