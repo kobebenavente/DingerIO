@@ -155,7 +155,7 @@ public class PostGameService {
             if (record.getDivision().getId().equals(divisionId)) {
                 List<TeamRecordsDTO> teamRecords = record.getTeamRecords();
 
-                standingsToSend.append("Updated Division Standings: \n");
+                standingsToSend.append("## Updated Division Standings: \n");
                 for (int i = 0; i < teamRecords.size(); i++) {
                     TeamRecordsDTO standingsTeamDTO = teamRecords.get(i);
                     Team team = teamRepository.findByMlbTeamId(teamRecords.get(i).getTeam().getId()).orElseThrow(() -> new RuntimeException("Team not found for MLB ID"));

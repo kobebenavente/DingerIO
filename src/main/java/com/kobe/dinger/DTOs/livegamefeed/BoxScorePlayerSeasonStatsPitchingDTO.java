@@ -9,6 +9,7 @@ public class BoxScorePlayerSeasonStatsPitchingDTO {
     String whip;
     String era;
     Integer strikeOuts;
+    String inningsPitched;
 
     public String getEra() {
         return era;
@@ -48,5 +49,13 @@ public class BoxScorePlayerSeasonStatsPitchingDTO {
 
     public void setWins(Integer wins) {
         this.wins = wins;
+    }
+
+    public String getInningsPitched() {
+        return inningsPitched;
+    }
+
+    public void setInningsPitched(String inningsPitched) {
+        this.inningsPitched = inningsPitched;
     }
 }
