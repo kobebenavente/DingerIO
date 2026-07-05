@@ -8,6 +8,7 @@ public class GameDTO {
     private GameStatusDTO status;
     private GameTeamsDTO teams;
     private String gameDate;
+    private GameVenueDTO venue;
 
     public Integer getGamePk(){
         return gamePk;
@@ -35,5 +36,12 @@ public class GameDTO {
     }
     public void setGameDate(String gameDate){
         this.gameDate = gameDate;
+    }
+
+    public GameVenueDTO getVenue() {
+        return venue;
+    }
+    public void setVenue(GameVenueDTO venue) {
+        this.venue = venue;
     }
 }
