@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ public class GamePollingService {
     private final PostGameService postGameService;
     private final RestTemplate restTemplate;
     private final Map<Integer, GameState> gameStateSnapshots = new ConcurrentHashMap<>();
+    private final Set<Integer> gamesBeingProcessed = ConcurrentHashMap.newKeySet();
     private final ThreadPoolTaskExecutor executor;
 
     public GamePollingService(TeamSubscriptionRepository teamSubscriptionRepository, TeamRepository teamRepository, LiveGameService liveGameService,
@@ -65,7 +67,12 @@ public class GamePollingService {
         for (GameDTO game : games) {
             executor.submit(() -> {
                 Integer gamePk = game.getGamePk();
-                Integer awayTeamMlbId = game.getTeams().getAway().getTeam().getId();
+                if (!gamesBeingProcessed.add(gamePk)) {
+                    log.info("Game {} already being processed, skipping", gamePk);
+                    return;
+                }
+                try {
+                    Integer awayTeamMlbId = game.getTeams().getAway().getTeam().getId();
                 Integer homeTeamMlbId = game.getTeams().getHome().getTeam().getId();
                 Team awayTeam = teamRepository.findByMlbTeamId(awayTeamMlbId).orElse(null);
                 Team homeTeam = teamRepository.findByMlbTeamId(homeTeamMlbId).orElse(null);
@@ -85,9 +92,13 @@ public class GamePollingService {
                     if ("Postponed".equals(game.getStatus().getDetailedState())) {
                         postGameService.processPostponed(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     } else {
+                        log.info("PROCESSING GAME END FOR = " + game.getTeams().getHome().getTeam().getName() + " vs "
+                                + game.getTeams().getAway().getTeam().getName() + " | HAS GAME ENDED MESSAGE BEEN SENT?: " + lastGameState.isGameEndedMessageSent());
                         postGameService.processGameEnd(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     }
                     if(lastGameState.isGameEnded()){
+                        log.info("GAME MARKED AS ENDED: Removing game = " + game.getTeams().getHome().getTeam().getName() + " vs "
+                        + game.getTeams().getAway().getTeam().getName());
                         gameStateSnapshots.remove(gamePk);
                     }
                 } else if("In Progress".equals(game.getStatus().getDetailedState())){
@@ -110,6 +121,9 @@ public class GamePollingService {
                     lastGameState.setTracked(true);
                     lastGameState.setDetailedState(game.getStatus().getDetailedState());
                     preGameService.processGame(game, gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
+                }
+                } finally {
+                    gamesBeingProcessed.remove(gamePk);
                 }
             });
         }
