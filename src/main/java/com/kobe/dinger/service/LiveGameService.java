@@ -221,6 +221,15 @@ public class LiveGameService {
                         + "\n" + scoringPlayDescription;
                 notificationService.sendEmbed(sub, messageDescription);
             }
+
+            if(scoreChanged && events.contains(NotificationEvent.LEAD_CHANGE)){
+                String message;
+                if(gameTied){
+                    if (subbedTeamIsHomeTeam) {
+
+                    }
+                }
+            }
         }
 
         lastGameState.setCurrentInning(currentInning);
