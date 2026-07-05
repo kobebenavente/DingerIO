@@ -271,7 +271,6 @@ public class PreGameService{
 
     public String generateLineupMessage(List<LineupBatter> lineupBatters, LineupPitcher lineupPitcher){
         StringBuilder stringToSend = new StringBuilder("```\n");
-        int maxPositionPlusNameLength = 16;
         String pitcherName = lineupPitcher.useName + " " + lineupPitcher.useLastName;
         if(9 + pitcherName.length() > 33){
             pitcherName = lineupPitcher.useName.charAt(0) + ". " + lineupPitcher.useLastName;
@@ -279,12 +278,14 @@ public class PreGameService{
         stringToSend.append("Pitcher: ").append(pitcherName).append("\n").append(lineupPitcher.winLoss).append(" W/L | ")
                 .append(lineupPitcher.era).append(" ERA | ").append(lineupPitcher.strikeOuts).append(" SO\n");
         stringToSend.append("--------------------------------\n");
+
+        int maxPositionPlusNameLength = 17;
         stringToSend.append(" Batting Order    AVG HR RBI OPS\n");
-        String rowFormat = "%-" + maxPositionPlusNameLength + "s %s %2d %-2d %s\n";
+        String rowFormat = "%-" + maxPositionPlusNameLength + "s%s %2d %-2d %s\n";
         for(LineupBatter lineupBatter : lineupBatters){
             String defaultName = lineupBatter.useName.charAt(0) + ". " + lineupBatter.useLastName;
             String name;
-            if(3 + defaultName.length() > maxPositionPlusNameLength){
+            if(4 + defaultName.length() > maxPositionPlusNameLength){
                 name = lineupBatter.useName + " " + lineupBatter.useLastName.charAt(0) + ".";
             } else {
                 name = defaultName;
