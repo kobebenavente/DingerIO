@@ -212,9 +212,12 @@ public class PreGameService{
         }
         if (homeLineupAnnounced) {
             lastGameState.setGameDayHomeRosterSent(true);
+            log.info("CONFIRMED LINEUP MESSAGE SENT: {} vs {}", homeTeam.getTeamName(), awayTeam.getTeamName());
         }
         if (awayLineupAnnounced) {
             lastGameState.setGameDayAwayRosterSent(true);
+            log.info("CONFIRMED LINEUP MESSAGE SENT: {} vs {}", homeTeam.getTeamName(), awayTeam.getTeamName());
+
         }
     }
     public static class LineupBatter {

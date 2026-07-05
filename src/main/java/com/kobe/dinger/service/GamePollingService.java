@@ -82,7 +82,8 @@ public class GamePollingService {
                 subscriptions.addAll(teamSubscriptionRepository.findByTeam(homeTeam));
                 
                 if (subscriptions.isEmpty()) {
-                    log.info("No subscriptions for gamePk={}, skipping", gamePk);
+                    log.info("No subscriptions for game = {} vs {}, skipping", homeTeam.getTeamName()
+                            , awayTeam.getTeamName());
                     return;
                 }
 
@@ -92,8 +93,10 @@ public class GamePollingService {
                     if ("Postponed".equals(game.getStatus().getDetailedState())) {
                         postGameService.processPostponed(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     } else {
-                        log.info("PROCESSING GAME END FOR = " + game.getTeams().getHome().getTeam().getName() + " vs "
-                                + game.getTeams().getAway().getTeam().getName() + " | HAS GAME ENDED MESSAGE BEEN SENT?: " + lastGameState.isGameEndedMessageSent());
+                        log.info("PROCESSING GAME END FOR = " + game.getTeams().getHome().getTeam().getName()
+                                + " vs "
+                                + game.getTeams().getAway().getTeam().getName()
+                                + " | HAS GAME ENDED MESSAGE BEEN SENT?: " + lastGameState.isGameEndedMessageSent());
                         postGameService.processGameEnd(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                     }
                     if(lastGameState.isGameEnded()){
