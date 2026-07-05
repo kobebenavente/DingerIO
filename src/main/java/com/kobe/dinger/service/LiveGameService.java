@@ -48,6 +48,8 @@ public class LiveGameService {
 
         int currentHomeScore = linescore.getTeams().getHome().getRuns();
         int currentAwayScore = linescore.getTeams().getAway().getRuns();
+        lastGameState.setHomeScore(currentHomeScore);
+        lastGameState.setAwayScore(currentAwayScore);
         int currentInning = linescore.getCurrentInning();
         String inningHalf = linescore.getInningHalf();
 
@@ -65,12 +67,15 @@ public class LiveGameService {
             lastGameState.setScoringPlays(scoringPlays);
             lastGameState.setCurrentInning(currentInning);
             lastGameState.setInningHalf(inningHalf);
+            lastGameState.setHomeScore(currentHomeScore);
+            lastGameState.setAwayScore(currentAwayScore);
             log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
 
         boolean isStartOfGame = false;
-        if (("Pre-Game".equals(lastGameState.getDetailedState()) || "Warmup".equals(lastGameState.getDetailedState())) && feed.getGameData().getProbablePitchers() != null) {
+        if (("Pre-Game".equals(lastGameState.getDetailedState()) || "Warmup".equals(lastGameState.getDetailedState()))
+                && feed.getGameData().getProbablePitchers() != null) {
             isStartOfGame = true;
             lastGameState.setCurrentInning(currentInning);
             lastGameState.setScoringPlays(scoringPlays);
@@ -82,6 +87,10 @@ public class LiveGameService {
             lastGameState.setDetailedState("In Progress");
         }
 
+        //use the change in scoring plays to detect if a score has changed. since scoring plays
+        //give us a key for accessing a more detailed description in the mlb api, we should use
+        //scoring plays as the identifier for changes so that we aren't trying to access details
+        //that weren't updated yet.
         boolean scoreChanged = lastGameState.getScoringPlays().size() < scoringPlays.size();
         boolean inningChanged = currentInning > lastGameState.getCurrentInning();
         boolean halfChanged = inningChanged || !inningHalf.equals(lastGameState.getInningHalf());
@@ -91,6 +100,18 @@ public class LiveGameService {
         String scoringPlayDescription = "";
         boolean homePitcherChanged = false;
         boolean awayPitcherChanged = false;
+        boolean gameTied = scoreChanged && currentHomeScore == currentAwayScore && currentHomeScore > 0;
+        boolean homeTookLead = false;
+        boolean awayTookLead = false;
+        if(scoreChanged && currentHomeScore > currentAwayScore && lastGameState.getAwayScore()
+                >= lastGameState.getHomeScore()){
+            homeTookLead = true;
+        }
+
+        if(scoreChanged && currentAwayScore > currentHomeScore && lastGameState.getHomeScore()
+                >= lastGameState.getAwayScore()){
+            awayTookLead = true;
+        }
 
         if ("Top".equals(inningHalf)
                 && lastGameState.getCurrentHomePitcher() != null

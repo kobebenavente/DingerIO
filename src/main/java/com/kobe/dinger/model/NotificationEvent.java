@@ -13,5 +13,6 @@ public enum NotificationEvent {
     STARTING_PITCHER,
     END_INNING_PITCHER_STATS,
     PITCHER_CHANGE,
-    GAME_DAY_LINEUP
+    GAME_DAY_LINEUP,
+    LEAD_CHANGE
 }

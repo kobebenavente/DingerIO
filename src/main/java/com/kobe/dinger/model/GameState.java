@@ -25,6 +25,9 @@ public class GameState {
     private String currentAwayPitcher;
     private String currentHomePitcherId;
     private String currentAwayPitcherId;
+    private int homeScore;
+    private int awayScore;
+    private boolean trackedMidGame;
 
     public GameState() {
         this.gameStartingNotificationSent = false;
@@ -33,6 +36,7 @@ public class GameState {
         this.winsAndLossesSet = false;
         this.startingPitcherMessageSent = false;
         this.gameEnded = false;
+        this.trackedMidGame = false;
     }
 
     public boolean isGameEnded() {
@@ -204,5 +208,30 @@ public class GameState {
     public void setGameDayAwayRosterSent(boolean gameDayAwayRosterSent) {
         this.gameDayAwayRosterSent = gameDayAwayRosterSent;
     }
+
+    public int getAwayScore() {
+        return awayScore;
+    }
+
+    public void setAwayScore(int awayScore) {
+        this.awayScore = awayScore;
+    }
+
+    public boolean isTrackedMidGame() {
+        return trackedMidGame;
+    }
+
+    public void setTrackedMidGame(boolean trackedMidGame) {
+        this.trackedMidGame = trackedMidGame;
+    }
+
+    public int getHomeScore() {
+        return homeScore;
+    }
+
+    public void setHomeScore(int homeScore) {
+        this.homeScore = homeScore;
+    }
+
 
 }
