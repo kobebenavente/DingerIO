@@ -259,7 +259,7 @@ public class LiveGameService {
             //LEAD CHANGE OR TIEING PLAYS
             if(scoreChanged && events.contains(NotificationEvent.LEAD_CHANGE)
                     && !events.contains(NotificationEvent.SCORE_CHANGE)){
-                String message;
+                String message = "";
                 if(gameTied){
                     if (subbedTeamIsHomeTeam && homeTeamScored) {
                         message = "## 🎉 " + homeTeam.getTeamName() + " Tie The Game! — "
@@ -301,7 +301,7 @@ public class LiveGameService {
                                     + notificationService.generateLineScores(false, currentHomeScore
                                     , currentAwayScore, homeTeam, awayTeam)
                                     + "\n" + scoringPlayDescription;
-                        } else {
+                        } else if (awayTookLead) {
                             message = "## 🚨 " + awayTeam.getTeamName() + " Take The Lead.. — "
                                     + notificationService.generateLineScores(true, currentHomeScore
                                     , currentAwayScore, homeTeam, awayTeam)
