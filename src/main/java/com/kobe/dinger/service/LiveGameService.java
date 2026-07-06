@@ -74,12 +74,8 @@ public class LiveGameService {
             lastGameState.setHomeScore(currentHomeScore);
             lastGameState.setAwayScore(currentAwayScore);
             lastGameState.setTrackedMidGame(true);
-            if(awayPitchingPlayerIds.size() == 1){
-                lastGameState.setStartingHomePitcherId("ID" + homePitchingPlayerIds.getFirst());
-            }
-            if(homePitchingPlayerIds.size() == 1){
-                lastGameState.setStartingAwayPitcherId("ID" + awayPitchingPlayerIds.getFirst());
-            }
+            lastGameState.setStartingHomePitcherId(startingHomePitcherPlayerId);
+            lastGameState.setStartingAwayPitcherId(startingAwayPitcherPlayerId);
             log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
@@ -87,20 +83,18 @@ public class LiveGameService {
         boolean isStartOfGame = false;
         if (("Pre-Game".equals(lastGameState.getDetailedState()) || "Warmup".equals(lastGameState.getDetailedState()))
                 && feed.getGameData().getProbablePitchers() != null) {
-            String startingHomePitcherId = "ID" + homePitchingPlayerIds.getFirst();
-            String startingAwayPitcherId = "ID" + awayPitchingPlayerIds.getFirst();
 
             isStartOfGame = true;
             lastGameState.setCurrentInning(currentInning);
             lastGameState.setScoringPlays(scoringPlays);
             lastGameState.setInningHalf(inningHalf);
-            lastGameState.setCurrentHomePitcher(feed.getGameData().getPlayers().get(startingHomePitcherId).getFullName());
-            lastGameState.setCurrentHomePitcherId(startingHomePitcherId);
-            lastGameState.setCurrentAwayPitcher(feed.getGameData().getPlayers().get(startingAwayPitcherId).getFullName());
-            lastGameState.setCurrentAwayPitcherId(startingAwayPitcherId);
+            lastGameState.setCurrentHomePitcher(feed.getGameData().getPlayers().get(startingHomePitcherPlayerId).getFullName());
+            lastGameState.setCurrentHomePitcherId(startingHomePitcherPlayerId);
+            lastGameState.setCurrentAwayPitcher(feed.getGameData().getPlayers().get(startingAwayPitcherPlayerId).getFullName());
+            lastGameState.setCurrentAwayPitcherId(startingAwayPitcherPlayerId);
             lastGameState.setDetailedState("In Progress");
-            lastGameState.setStartingHomePitcherId(startingHomePitcherId);
-            lastGameState.setStartingAwayPitcherId(startingAwayPitcherId);
+            lastGameState.setStartingHomePitcherId(startingHomePitcherPlayerId);
+            lastGameState.setStartingAwayPitcherId(startingAwayPitcherPlayerId);
         }
 
         //use the change in scoring plays to detect if a score has changed. since scoring plays
@@ -129,15 +123,15 @@ public class LiveGameService {
             awayTookLead = true;
         }
 
-        if ("Top".equals(inningHalf)
-                && lastGameState.getCurrentHomePitcher() != null
-                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
-                .getPitcher().getFullName().equals(lastGameState.getCurrentHomePitcher())) {
+        //CHECK IF PITCHER CHANGED
+        if ("Top".equals(inningHalf) && lastGameState.getCurrentHomePitcher() != null
+                && !("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
+                .getPitcher().getId()).equals(lastGameState.getCurrentHomePitcherId())) {
             homePitcherChanged = true;
         } else if ("Bottom".equals(inningHalf)
                 && lastGameState.getCurrentAwayPitcher() != null
-                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
-                .getPitcher().getFullName().equals(lastGameState.getCurrentAwayPitcher())) {
+                && !("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
+                .getPitcher().getId()).equals(lastGameState.getCurrentAwayPitcherId())) {
             awayPitcherChanged = true;
         }
 
