@@ -309,7 +309,9 @@ public class LiveGameService {
                         }
                     }
                 }
-                 notificationService.sendEmbed(sub, message);
+                if(!message.isEmpty()){
+                    notificationService.sendEmbed(sub, message);
+                }
             }
         }
 
