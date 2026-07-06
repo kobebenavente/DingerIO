@@ -52,6 +52,10 @@ public class LiveGameService {
         lastGameState.setAwayScore(currentAwayScore);
         int currentInning = linescore.getCurrentInning();
         String inningHalf = linescore.getInningHalf();
+        List<Integer> homePitchingPlayerIds = feed.getLiveData().getBoxscore().getTeams().getHome().getPitchers();
+        List<Integer> awayPitchingPlayerIds = feed.getLiveData().getBoxscore().getTeams().getAway().getPitchers();
+        String startingHomePitcherPlayerId = "ID" + homePitchingPlayerIds.getFirst();
+        String startingAwayPitcherPlayerId = "ID" + awayPitchingPlayerIds.getFirst();
 
         List<Integer> scoringPlays = new ArrayList<>();
         if (feed.getLiveData().getPlays().getScoringPlays() != null) {
@@ -69,6 +73,13 @@ public class LiveGameService {
             lastGameState.setInningHalf(inningHalf);
             lastGameState.setHomeScore(currentHomeScore);
             lastGameState.setAwayScore(currentAwayScore);
+            lastGameState.setTrackedMidGame(true);
+            if(awayPitchingPlayerIds.size() == 1){
+                lastGameState.setStartingHomePitcherId("ID" + homePitchingPlayerIds.getFirst());
+            }
+            if(homePitchingPlayerIds.size() == 1){
+                lastGameState.setStartingAwayPitcherId("ID" + awayPitchingPlayerIds.getFirst());
+            }
             log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
@@ -76,15 +87,20 @@ public class LiveGameService {
         boolean isStartOfGame = false;
         if (("Pre-Game".equals(lastGameState.getDetailedState()) || "Warmup".equals(lastGameState.getDetailedState()))
                 && feed.getGameData().getProbablePitchers() != null) {
+            String startingHomePitcherId = "ID" + homePitchingPlayerIds.getFirst();
+            String startingAwayPitcherId = "ID" + awayPitchingPlayerIds.getFirst();
+
             isStartOfGame = true;
             lastGameState.setCurrentInning(currentInning);
             lastGameState.setScoringPlays(scoringPlays);
             lastGameState.setInningHalf(inningHalf);
-            lastGameState.setCurrentHomePitcher(feed.getGameData().getProbablePitchers().getHome().getFullName());
-            lastGameState.setCurrentHomePitcherId("ID" + feed.getGameData().getProbablePitchers().getHome().getId());
-            lastGameState.setCurrentAwayPitcher(feed.getGameData().getProbablePitchers().getAway().getFullName());
-            lastGameState.setCurrentAwayPitcherId("ID" + feed.getGameData().getProbablePitchers().getAway().getId());
+            lastGameState.setCurrentHomePitcher(feed.getGameData().getPlayers().get(startingHomePitcherId).getFullName());
+            lastGameState.setCurrentHomePitcherId(startingHomePitcherId);
+            lastGameState.setCurrentAwayPitcher(feed.getGameData().getPlayers().get(startingAwayPitcherId).getFullName());
+            lastGameState.setCurrentAwayPitcherId(startingAwayPitcherId);
             lastGameState.setDetailedState("In Progress");
+            lastGameState.setStartingHomePitcherId(startingHomePitcherId);
+            lastGameState.setStartingAwayPitcherId(startingAwayPitcherId);
         }
 
         //use the change in scoring plays to detect if a score has changed. since scoring plays
@@ -115,13 +131,20 @@ public class LiveGameService {
 
         if ("Top".equals(inningHalf)
                 && lastGameState.getCurrentHomePitcher() != null
-                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(lastGameState.getCurrentHomePitcher())) {
+                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
+                .getPitcher().getFullName().equals(lastGameState.getCurrentHomePitcher())) {
             homePitcherChanged = true;
         } else if ("Bottom".equals(inningHalf)
                 && lastGameState.getCurrentAwayPitcher() != null
-                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName().equals(lastGameState.getCurrentAwayPitcher())) {
+                && !feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
+                .getPitcher().getFullName().equals(lastGameState.getCurrentAwayPitcher())) {
             awayPitcherChanged = true;
         }
+
+        boolean startingHomePitcherChanged = homePitcherChanged && lastGameState.getCurrentHomePitcherId()
+                .equals(startingHomePitcherPlayerId);
+        boolean startingAwayPitcherChanged = awayPitcherChanged && lastGameState.getCurrentAwayPitcherId()
+                .equals(startingAwayPitcherPlayerId);
 
         //MLB API gives all plays as a list in the JSON response. In order to ensure we send out the proper notification for 
         //a score change, retrieve the last scoring play ID then loop through the list of plays starting from the end (order of 
@@ -222,13 +245,60 @@ public class LiveGameService {
                 notificationService.sendEmbed(sub, messageDescription);
             }
 
-            if(scoreChanged && events.contains(NotificationEvent.LEAD_CHANGE)){
+            //LEAD CHANGE OR TIEING PLAYS
+            if(scoreChanged && events.contains(NotificationEvent.LEAD_CHANGE)
+                    && !events.contains(NotificationEvent.SCORE_CHANGE)){
                 String message;
                 if(gameTied){
-                    if (subbedTeamIsHomeTeam) {
-
+                    if (subbedTeamIsHomeTeam && homeTeamScored) {
+                        message = "## 🎉 " + homeTeam.getTeamName() + " Tie The Game! — "
+                                + notificationService.generateLineScores(true, currentHomeScore
+                                , currentAwayScore, homeTeam, awayTeam)
+                                + "\n" + scoringPlayDescription;
+                    } else if (!subbedTeamIsHomeTeam && awayTeamScored){
+                        message = "## 🎉 " + awayTeam.getTeamName() + " Tie The Game! — "
+                                + notificationService.generateLineScores(false, currentHomeScore
+                                , currentAwayScore, homeTeam, awayTeam)
+                                + "\n" + scoringPlayDescription;
+                    } else {
+                        if(homeTeamScored){
+                            message = "## 🚨 " + homeTeam.getTeamName() + " Tie The Game.. — "
+                                    + notificationService.generateLineScores(false, currentHomeScore
+                                    , currentAwayScore, homeTeam, awayTeam)
+                                    + "\n" + scoringPlayDescription;
+                        } else {
+                            message = "## 🚨 " + awayTeam.getTeamName() + " Tie The Game.. — "
+                                    + notificationService.generateLineScores(true, currentHomeScore
+                                    , currentAwayScore, homeTeam, awayTeam)
+                                    + "\n" + scoringPlayDescription;
+                        }
+                    }
+                } else {
+                    if(subbedTeamIsHomeTeam && homeTookLead){
+                        message = "## 🎉 " + homeTeam.getTeamName() + " Take The Lead! — "
+                                + notificationService.generateLineScores(true, currentHomeScore
+                                , currentAwayScore, homeTeam, awayTeam)
+                                + "\n" + scoringPlayDescription;
+                    } else if (!subbedTeamIsHomeTeam && awayTookLead){
+                        message = "## 🎉 " + awayTeam.getTeamName() + " Take The Lead! — "
+                                + notificationService.generateLineScores(false, currentHomeScore
+                                , currentAwayScore, homeTeam, awayTeam)
+                                + "\n" + scoringPlayDescription;
+                    } else {
+                        if(homeTookLead){
+                            message = "## 🚨 " + homeTeam.getTeamName() + " Take The lead.. — "
+                                    + notificationService.generateLineScores(false, currentHomeScore
+                                    , currentAwayScore, homeTeam, awayTeam)
+                                    + "\n" + scoringPlayDescription;
+                        } else {
+                            message = "## 🚨 " + awayTeam.getTeamName() + " Take The Lead.. — "
+                                    + notificationService.generateLineScores(true, currentHomeScore
+                                    , currentAwayScore, homeTeam, awayTeam)
+                                    + "\n" + scoringPlayDescription;
+                        }
                     }
                 }
+                 notificationService.sendEmbed(sub, message);
             }
         }
 

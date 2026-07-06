@@ -6,6 +6,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDataPlayersDTO {
     private int id;
+    private String fullName;
     private String useName;
     private String useLastName;
     private GameDataPlayersBatSideDTO batSide;
@@ -50,5 +51,14 @@ public class GameDataPlayersDTO {
     public void setPitchSide(GameDataPlayersPitchSideDTO pitchSide) {
         this.pitchSide = pitchSide;
     }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
 
 }

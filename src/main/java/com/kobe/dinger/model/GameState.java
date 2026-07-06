@@ -29,6 +29,8 @@ public class GameState {
     private int awayScore;
     private boolean trackedMidGame;
     private boolean gameEndedMessageSent;
+    private String startingHomePitcherId;
+    private String startingAwayPitcherId;
 
     public GameState() {
         this.gameStartingNotificationSent = false;
@@ -241,6 +243,22 @@ public class GameState {
 
     public void setGameEndedMessageSent(boolean gameEndedMessageSent) {
         this.gameEndedMessageSent = gameEndedMessageSent;
+    }
+
+    public String getStartingHomePitcherId() {
+        return startingHomePitcherId;
+    }
+
+    public void setStartingHomePitcherId(String startingHomePitcherId) {
+        this.startingHomePitcherId = startingHomePitcherId;
+    }
+
+    public String getStartingAwayPitcherId() {
+        return startingAwayPitcherId;
+    }
+
+    public void setStartingAwayPitcherId(String startingAwayPitcherId) {
+        this.startingAwayPitcherId = startingAwayPitcherId;
     }
 
 }
