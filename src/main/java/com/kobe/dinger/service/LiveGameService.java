@@ -180,20 +180,37 @@ public class LiveGameService {
             }
 
             //PITCHER CHANGE NOTIFICATION
-            if (subbedTeamIsHomeTeam && homePitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)) {
-                String stringToSend = "## 🔄 Pitcher change \n"
-                        + lastGameState.getCurrentHomePitcher()
-                        + " (" + generatePitcherStatLine(true, feed, lastGameState) + ") "
-                        + "is replaced by "
-                        + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                notificationService.sendEmbed(sub, stringToSend);
-            } else if (!subbedTeamIsHomeTeam && awayPitcherChanged && events.contains(NotificationEvent.PITCHER_CHANGE)) {
-                String stringToSend = "## 🔄 Pitcher change \n"
-                        + lastGameState.getCurrentAwayPitcher()
-                        + "(" + generatePitcherStatLine(false, feed, lastGameState) + ") "
-                        + "is replaced by "
-                        + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                notificationService.sendEmbed(sub, stringToSend);
+            if ((homePitcherChanged || awayPitcherChanged) && (events.contains(NotificationEvent.PITCHER_CHANGE)
+                    || events.contains(NotificationEvent.STARTING_PITCHER_CHANGE))){
+                if(subbedTeamIsHomeTeam && homePitcherChanged){
+                    if(events.contains(NotificationEvent.PITCHER_CHANGE)){
+                        String message = "## 🔄 Pitcher Pulled \n" + lastGameState.getCurrentHomePitcher() +
+                                " (" + generatePitcherStatLine(true, feed, lastGameState) + ") " +
+                                "is replaced by " +
+                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        notificationService.sendEmbed(sub, message);
+                    } else if (startingHomePitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
+                        String message = "## 🔄 Starting Pitcher Pulled \n" + lastGameState.getCurrentHomePitcher() +
+                                " (" + generatePitcherStatLine(true, feed, lastGameState) + ") " +
+                                "is replaced by " +
+                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        notificationService.sendEmbed(sub, message);
+                    }
+                } else if (!subbedTeamIsHomeTeam && awayPitcherChanged){
+                    if(events.contains(NotificationEvent.PITCHER_CHANGE)){
+                        String message = "## 🔄 Pitcher Pulled \n" + lastGameState.getCurrentAwayPitcher() +
+                                " (" + generatePitcherStatLine(false, feed, lastGameState) + ") " +
+                                "is replaced by " +
+                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        notificationService.sendEmbed(sub, message);
+                    } else if (startingAwayPitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
+                        String message = "## 🔄 Starting Pitcher Pulled \n" + lastGameState.getCurrentAwayPitcher() +
+                                " (" + generatePitcherStatLine(false, feed, lastGameState) + ") " +
+                                "is replaced by " +
+                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        notificationService.sendEmbed(sub, message);
+                    }
+                }
             }
 
             //INNING CHANGE
