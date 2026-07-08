@@ -12,7 +12,6 @@ public class BoxScorePlayerPitchingStatsDTO {
     Integer strikeOuts;
     Integer numberOfPitches;
 
-
     public String getInningsPitched() {
         return inningsPitched;
     }

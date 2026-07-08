@@ -9,6 +9,7 @@ public class BoxScoreTeamDTO {
     private Map<String, BoxScorePlayerDTO> players;
     private List<Integer> battingOrder;
     private List<Integer> pitchers;
+    private List<Integer> batters;
 
     public List<Integer> getBattingOrder() {
         return battingOrder;
@@ -28,6 +29,12 @@ public class BoxScoreTeamDTO {
     public void setPitchers(List<Integer> pitchers) {
         this.pitchers = pitchers;
     }
+    public List<Integer> getBatters() {
+        return batters;
+    }
 
+    public void setBatters(List<Integer> batters) {
+        this.batters = batters;
+    }
 
 }

@@ -17,6 +17,11 @@ import com.kobe.dinger.model.TeamSubscription;
 @Service
 public class NotificationService {
     private static final int tempDefaultColor = 3447003;
+    private static final Map<String, Object> AUTHOR = Map.of(
+        "name", "DingerIO.com • MLB Discord Updates",
+        "url", "https://github.com/kobebenavente/DingerIO",
+        "icon_url", "https://github.com/kobebenavente/DingerIO/blob/main/dinger-frontend/public/bell_logo.png?raw=true"
+    );
     private final RestTemplate restTemplate;
     private final ThreadPoolTaskExecutor notificationExecutor;
 
@@ -72,12 +77,10 @@ public class NotificationService {
     private void postEmbedToDiscord(String webhookUrl, String description, int color) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, Object> footer = Map.of("text", "DingerIO • Live MLB Updates",
-                "icon_url", "https://github.com/kobebenavente/DingerIO/blob/main/dinger-frontend/public/bell_logo.png?raw=true");
         Map<String, Object> embed = Map.of(
                 "description", description,
                 "color", color,
-                "footer", footer
+                "author", AUTHOR
         );
         Map<String, Object> body = Map.of("embeds", List.of(embed));
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
@@ -88,13 +91,11 @@ public class NotificationService {
     private void postEmbedToDiscord(String webhookUrl, String title, String description, int color) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, Object> footer = Map.of("text", "DingerIO • Live MLB Updates",
-                "icon_url", "https://github.com/kobebenavente/DingerIO/blob/main/dinger-frontend/public/bell_logo.png?raw=true");
         Map<String, Object> embed = Map.of(
             "title", title,
             "description", description,
             "color", color,
-            "footer", footer
+            "author", AUTHOR
         );
         Map<String, Object> body = Map.of("embeds", List.of(embed));
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

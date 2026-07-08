@@ -113,7 +113,8 @@ public class GamePollingService {
                         setWinLossRecord(lastGameState, game);
                     }
                     liveGameService.processGame(gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
-                } else if ("Warm-up".equals(game.getStatus().getDetailedState()) || "Pre-Game".equals(game.getStatus().getDetailedState())){
+                } else if ("Warmup".equals(game.getStatus().getDetailedState()) || "Pre-Game".equals(game.getStatus().getDetailedState())
+                || "Warm-up".equals(game.getStatus().getDetailedState())){
                     if(!gameStateSnapshots.containsKey(gamePk)){
                         gameStateSnapshots.put(gamePk, new GameState());
                     }
@@ -125,6 +126,8 @@ public class GamePollingService {
                     lastGameState.setDetailedState(game.getStatus().getDetailedState());
                     preGameService.processGame(game, gamePk, subscriptions, lastGameState, homeTeam, awayTeam);
                 }
+                } catch (Exception e) {
+                    log.error("Error processing game {}", gamePk, e);
                 } finally {
                     gamesBeingProcessed.remove(gamePk);
                 }

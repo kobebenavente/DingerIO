@@ -1,9 +1,13 @@
 package com.kobe.dinger.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.kobe.dinger.DTOs.livegamefeed.BoxScorePlayerDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,6 +23,7 @@ import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class PostGameService {
+    private static final Logger log = LoggerFactory.getLogger(PostGameService.class);
     private final RestTemplate restTemplate;
     private final NotificationService notificationService;
     private final TeamRepository teamRepository;
@@ -38,6 +43,7 @@ public class PostGameService {
         Integer homeTeamLosses = 0;
         Integer awayTeamWins = 0;
         Integer awayTeamLosses = 0;
+
 
         if (homeTeam.getLeagueId().equals(awayTeam.getLeagueId())) {
             isSameLeague = true;
@@ -94,6 +100,12 @@ public class PostGameService {
             return;
         }
 
+
+        List<Integer> homeBatters = feed.getLiveData().getBoxscore().getTeams().getHome().getBatters();
+        List<Integer> awayBatters = feed.getLiveData().getBoxscore().getTeams().getAway().getBatters();
+        List<Integer> homePitchers = feed.getLiveData().getBoxscore().getTeams().getHome().getPitchers();
+        List<Integer> awayPitchers = feed.getLiveData().getBoxscore().getTeams().getAway().getPitchers();
+
         int homeFinalScore = feed.getLiveData().getLinescore().getTeams().getHome().getRuns();
         int awayFinalScore = feed.getLiveData().getLinescore().getTeams().getAway().getRuns();
 
@@ -106,9 +118,18 @@ public class PostGameService {
             if (events.contains(NotificationEvent.GAME_END) && !lastGameState.isGameEndedMessageSent()) {
 
                 // ## 🔔 Game Ended — 🔱 Mariners: 4 | 🗽 Yankees: 2
-                gameEndMessage.append("## 🔔 Game Ended — ")
-                        .append(notificationService.generateLineScores(subbedTeamIsHomeTeam, homeFinalScore, awayFinalScore, homeTeam, awayTeam))
-                        .append("\n\n *Updated division standings will be sent once the game has been finalized by the MLB");
+                gameEndMessage.append("## 🏁 Game Has Ended\n### Final — ")
+                        .append(notificationService.generateLineScores(subbedTeamIsHomeTeam, homeFinalScore, awayFinalScore, homeTeam, awayTeam));
+
+                try {
+                    if(subbedTeamIsHomeTeam){
+                        gameEndMessage.append("\n").append(generateBoxScoreMessage(homeBatters,homePitchers,feed,true));
+                    } else {
+                        gameEndMessage.append("\n").append(generateBoxScoreMessage(awayBatters,awayPitchers,feed,false));
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to generate box score for game {}", gamePk, e);
+                }
 
                 notificationService.sendEmbed(sub, gameEndMessage.toString());
             }
@@ -175,4 +196,184 @@ public class PostGameService {
         standingsToSend.append("Division games back: " + teamDivisionGamesBack);
         return standingsToSend.toString();
     }
+
+
+    public String generateBoxScoreMessage(List<Integer> batters, List<Integer> pitchers, LiveFeedResponseDTO feed
+    , boolean isHomeTeam){
+
+        log.info("NOW CALLING generateBoxScoreMessage() | SUBBED TEAM IS HOME TEAM = {}", isHomeTeam);
+        log.info("Batters: {}", batters);
+        log.info("Pitchers: {}", pitchers);
+        List<LineupBatter> playingBatters = new ArrayList<>();
+        List<LineupPitcher> playingPitchers = new ArrayList<>();
+
+        //IP   H   ER  BB  K
+        log.info("NOW ENTERING FOR-LOOP FOR ADDING PITCHERS TO List<LineupPitcher>");
+        for(Integer pitcherId : pitchers){
+            BoxScorePlayerDTO boxScorePlayerDTO;
+            LineupPitcher pitcher;
+            if(isHomeTeam){
+                boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers()
+                        .get("ID" + pitcherId);
+                String useName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseName();
+                String useLastName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseLastName();
+                String inningsPitched = boxScorePlayerDTO.getStats().getPitching().getInningsPitched();
+                Integer hits = boxScorePlayerDTO.getStats().getPitching().getHits();
+                Integer earnedRuns = boxScorePlayerDTO.getStats().getPitching().getEarnedRuns();
+                Integer baseOnBalls = boxScorePlayerDTO.getStats().getPitching().getBaseOnBalls();
+                Integer strikeOuts = boxScorePlayerDTO.getStats().getPitching().getStrikeOuts();
+                pitcher = new LineupPitcher(useName, useLastName,hits,earnedRuns,baseOnBalls,strikeOuts, inningsPitched);
+                playingPitchers.add(pitcher);
+            } else {
+                boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
+                        .get("ID" + pitcherId);
+                String useName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseName();
+                String useLastName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseLastName();
+                String inningsPitched = boxScorePlayerDTO.getStats().getPitching().getInningsPitched();
+                Integer hits = boxScorePlayerDTO.getStats().getPitching().getHits();
+                Integer earnedRuns = boxScorePlayerDTO.getStats().getPitching().getEarnedRuns();
+                Integer baseOnBalls = boxScorePlayerDTO.getStats().getPitching().getBaseOnBalls();
+                Integer strikeOuts = boxScorePlayerDTO.getStats().getPitching().getStrikeOuts();
+                pitcher = new LineupPitcher(useName, useLastName,hits,earnedRuns,baseOnBalls,strikeOuts, inningsPitched);
+                playingPitchers.add(pitcher);
+            }
+        }
+
+        log.info("NOW ENTERING FOR-LOOP FOR ADDING BATTERS TO List<LineupBatter>");
+        //AB  R  H RBI BB HR
+        for(Integer batterId : batters){
+            BoxScorePlayerDTO boxScorePlayerDTO;
+            LineupBatter batter;
+            if(isHomeTeam){
+                 boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getHome().getPlayers()
+                        .get("ID" + batterId);
+                 Integer atBatsHome = boxScorePlayerDTO.getStats().getBatting().getAtBats();
+                 if(atBatsHome == null || atBatsHome == 0){
+                     continue;
+                 }
+                 String useName = feed.getGameData().getPlayers().get("ID" + batterId).getUseName();
+                 String useLastName = feed.getGameData().getPlayers().get("ID" + batterId).getUseLastName();
+                 String positionAbbreviation = boxScorePlayerDTO.getPosition().getAbbreviation();
+                 Integer atBats = boxScorePlayerDTO.getStats().getBatting().getAtBats();
+                 Integer runs = boxScorePlayerDTO.getStats().getBatting().getRuns();
+                 Integer hits = boxScorePlayerDTO.getStats().getBatting().getHits();
+                 Integer rbi = boxScorePlayerDTO.getStats().getBatting().getRbi();
+                 Integer baseOnBalls = boxScorePlayerDTO.getStats().getBatting().getBaseOnBalls();
+                 Integer homeRuns = boxScorePlayerDTO.getStats().getBatting().getHomeRuns();
+
+                 batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits);
+                 playingBatters.add(batter);
+            } else {
+                boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
+                        .get("ID" + batterId);
+                Integer atBatsAway = boxScorePlayerDTO.getStats().getBatting().getAtBats();
+                if(atBatsAway == null || atBatsAway == 0){
+                    continue;
+                }
+                String useName = feed.getGameData().getPlayers().get("ID" + batterId).getUseName();
+                String useLastName = feed.getGameData().getPlayers().get("ID" + batterId).getUseLastName();
+                String positionAbbreviation = boxScorePlayerDTO.getPosition().getAbbreviation();
+                Integer atBats = boxScorePlayerDTO.getStats().getBatting().getAtBats();
+                Integer runs = boxScorePlayerDTO.getStats().getBatting().getRuns();
+                Integer hits = boxScorePlayerDTO.getStats().getBatting().getHits();
+                Integer rbi = boxScorePlayerDTO.getStats().getBatting().getRbi();
+                Integer baseOnBalls = boxScorePlayerDTO.getStats().getBatting().getBaseOnBalls();
+                Integer homeRuns = boxScorePlayerDTO.getStats().getBatting().getHomeRuns();
+
+                batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits);
+                playingBatters.add(batter);
+            }
+
+        }
+        log.info("PITCHERS AND BATTERS ADDED TO THEIR LISTS. NOW BUILDING STRING.");
+        StringBuilder stringToSend = new StringBuilder("```\n");
+        stringToSend.append("           Box Score\n\n");
+
+        stringToSend.append("    Batters    AB R  H RBI BB HR\n");
+        stringToSend.append("================================\n");
+        String battersRowFormat = "%-14s %-2d %-2d %-2d %-2d %-2d %-2d\n";
+        for(LineupBatter batter : playingBatters){
+            String defaultName = batter.useName.charAt(0) + "." + batter.useLastName;
+            String name;
+            if(3 + defaultName.length() > 14){
+                name = batter.useName + " " + batter.useLastName.charAt(0) + ".";
+            } else {
+                name = defaultName;
+            }
+
+            String finalName = String.format("%-2s", batter.positionAbbreviation) + " " + name;
+
+            stringToSend.append(String.format(battersRowFormat, finalName, batter.atBats, batter.runs, batter.hits,
+                    batter.rbi, batter.baseOnBalls, batter.homeRuns));
+        }
+
+        log.info("BATTER STRING BUILT");
+
+        stringToSend.append("\n");
+        stringToSend.append("    Pitchers     IP  H  ER BB K\n");
+        stringToSend.append("================================\n");
+        String pitchersRowFormat = "%-15s %-3s %2d  %-2d %-2d %-2d\n";
+        for(LineupPitcher pitcher : playingPitchers){
+            String defaultName = pitcher.useName.charAt(0) + "." + pitcher.useLastName;
+            String name;
+            if(2 + defaultName.length() > 15){
+                name = pitcher.useName + " " + pitcher.useLastName.charAt(0) + ".";
+            } else {
+                name = defaultName;
+            }
+
+            stringToSend.append(String.format(pitchersRowFormat, "  " + name, pitcher.inningsPitched, pitcher.hits, pitcher.earnedRuns, pitcher.baseOnBalls, pitcher.strikeOuts));
+
+        }
+        log.info("PITCHER STRING BUILT");
+        stringToSend.append("```");
+
+        log.info("STRING BUILD COMPLETE: {}", stringToSend.toString());
+        return stringToSend.toString();
+    }
+
+    public static class LineupBatter {
+        String useName;
+        String useLastName;
+        String positionAbbreviation;
+        Integer homeRuns;
+        Integer rbi;
+        Integer runs;
+        Integer atBats;
+        Integer baseOnBalls;
+        Integer hits;
+
+        public LineupBatter(String useName, String useLastName, String positionAbbreviation, Integer homeRuns, Integer rbi, Integer runs, Integer atBats, Integer baseOnBalls, Integer hits) {
+            this.useName = useName;
+            this.useLastName = useLastName;
+            this.positionAbbreviation = positionAbbreviation;
+            this.homeRuns = homeRuns;
+            this.rbi = rbi;
+            this.runs = runs;
+            this.atBats = atBats;
+            this.baseOnBalls = baseOnBalls;
+            this.hits = hits;
+        }
+    }
+
+    public static class LineupPitcher {
+        String useName;
+        String useLastName;
+        Integer hits;
+        Integer earnedRuns;
+        Integer baseOnBalls;
+        Integer strikeOuts;
+        String inningsPitched;
+
+        public LineupPitcher(String useName, String useLastName, Integer hits, Integer earnedRuns, Integer baseOnBalls, Integer strikeOuts, String inningsPitched){
+            this.useName = useName;
+            this.useLastName = useLastName;
+            this.hits = hits;
+            this.earnedRuns = earnedRuns;
+            this.baseOnBalls = baseOnBalls;
+            this.strikeOuts = strikeOuts;
+            this.inningsPitched = inningsPitched;
+        }
+    }
+
 }
