@@ -138,10 +138,10 @@ public class PostGameService {
             if (events.contains(NotificationEvent.END_GAME_STANDINGS) && standingsUpdated) {
                 if (subbedTeamIsHomeTeam || isSameLeague) {
                     standingsMessage.append(generateStandingsString(sub.getTeam().getDivisionId()
-                            , homeTeamStandings, sub.getTeam().getMlbTeamId()));
+                            , homeTeamStandings, sub.getTeam().getMlbTeamId(), feed, true));
                 } else {
                     standingsMessage.append(generateStandingsString(sub.getTeam().getDivisionId()
-                            , awayTeamStandings, sub.getTeam().getMlbTeamId()));
+                            , awayTeamStandings, sub.getTeam().getMlbTeamId(), feed, false));
                 }
                 notificationService.sendEmbed(sub, standingsMessage.toString());
             }
@@ -167,20 +167,27 @@ public class PostGameService {
         lastGameState.setGameEnded(true);
     }
 
-    private String generateStandingsString(Integer divisionId, StandingsResponseDTO standings, Integer mlbTeamId) {
+    private String generateStandingsString(Integer divisionId, StandingsResponseDTO standings, Integer mlbTeamId
+            , LiveFeedResponseDTO feed, boolean subbedTeamIsHomeTeam) {
         StringBuilder standingsToSend = new StringBuilder();
         String teamWildCardGamesBack = "";
         String teamDivisionGamesBack = "";
+        String divisionName;
+        if(subbedTeamIsHomeTeam){
+            divisionName = feed.getGameData().getTeams().getHome().getDivision().getName();
+        } else {
+            divisionName = feed.getGameData().getTeams().getAway().getDivision().getName();
+        }
 
         for (RecordsDTO record : standings.getRecords()) {
             if (record.getDivision().getId().equals(divisionId)) {
                 List<TeamRecordsDTO> teamRecords = record.getTeamRecords();
 
-                standingsToSend.append("## Updated Division Standings: \n");
+                standingsToSend.append("## Updated ").append(divisionName).append(" Standings: \n");
                 for (int i = 0; i < teamRecords.size(); i++) {
                     TeamRecordsDTO standingsTeamDTO = teamRecords.get(i);
                     Team team = teamRepository.findByMlbTeamId(teamRecords.get(i).getTeam().getId()).orElseThrow(() -> new RuntimeException("Team not found for MLB ID"));
-                    standingsToSend.append(String.valueOf(i + 1) + ". " + team.getTeamEmoji() + " " + team.getTeamName() + " (" + standingsTeamDTO.getLeagueRecord().getWins()
+                    standingsToSend.append("### ").append(String.valueOf(i + 1) + ". " + team.getTeamEmoji() + " " + team.getTeamName() + " (" + standingsTeamDTO.getLeagueRecord().getWins()
                             + "-" + standingsTeamDTO.getLeagueRecord().getLosses() + ") \n");
 
                     if (standingsTeamDTO.getTeam().getId().equals(mlbTeamId)) {
@@ -192,8 +199,9 @@ public class PostGameService {
             }
         }
 
-        standingsToSend.append("Wildcard games back: " + teamWildCardGamesBack + "\n");
-        standingsToSend.append("Division games back: " + teamDivisionGamesBack);
+        standingsToSend.append("=====================================\n");
+        standingsToSend.append("Wildcard games back: ").append(teamWildCardGamesBack).append("\n");
+        standingsToSend.append("Division games back: ").append(teamDivisionGamesBack);
         return standingsToSend.toString();
     }
 
