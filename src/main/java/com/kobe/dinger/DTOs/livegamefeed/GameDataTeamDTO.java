@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class GameDataTeamDTO {
     private String name;
     private Integer runs;
+    private GameDataDivisionDTO division;
 
     public String getName(){
         return this.name;
@@ -21,5 +22,13 @@ public class GameDataTeamDTO {
 
     public void setRuns(int runs){
         this.runs = runs;
+    }
+
+    public GameDataDivisionDTO getDivision() {
+        return division;
+    }
+
+    public void setDivision(GameDataDivisionDTO division) {
+        this.division = division;
     }
 }

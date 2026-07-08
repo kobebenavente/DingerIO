@@ -58,10 +58,18 @@ public class NotificationService {
         notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, tempDefaultColor));
     }
 
-    public void sendEmbed(TeamSubscription subscription, String title, String description) {
+    public void sendEmbed(TeamSubscription subscription, String description, Team homeTeam, Team awayTeam, String date) {
         String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
         if (webhookUrl == null || webhookUrl.isBlank()) return;
-        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, title, description, tempDefaultColor));
+        String footerText = awayTeam.getTeamName() + " @ " + homeTeam.getTeamName() + " - " + date;
+        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, footerText, tempDefaultColor));
+    }
+
+    public void sendEmbed(TeamSubscription subscription, String description, String inningHalfAndNumber, Team homeTeam, Team awayTeam, String date) {
+        String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
+        if (webhookUrl == null || webhookUrl.isBlank()) return;
+        String footerText = inningHalfAndNumber + " - " + awayTeam.getTeamName() + " @ " + homeTeam.getTeamName() + " - " + date;
+        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, footerText, tempDefaultColor));
     }
 
     private void postToDiscord(String webhookUrl, String message) {
@@ -88,14 +96,15 @@ public class NotificationService {
         restTemplate.postForObject(webhookUrl, request, String.class);
     }
 
-    private void postEmbedToDiscord(String webhookUrl, String title, String description, int color) {
+    private void postEmbedToDiscord(String webhookUrl, String description, String footerText, int color) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, Object> footer = Map.of("text", footerText);
         Map<String, Object> embed = Map.of(
-            "title", title,
-            "description", description,
-            "color", color,
-            "author", AUTHOR
+                "description", description,
+                "color", color,
+                "author", AUTHOR,
+                "footer", footer
         );
         Map<String, Object> body = Map.of("embeds", List.of(embed));
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

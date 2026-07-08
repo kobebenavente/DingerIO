@@ -169,6 +169,7 @@ public class PostGameService {
 
     private String generateStandingsString(Integer divisionId, StandingsResponseDTO standings, Integer mlbTeamId
             , LiveFeedResponseDTO feed, boolean subbedTeamIsHomeTeam) {
+        log.info("NOW CALLING generateStandingsString()");
         StringBuilder standingsToSend = new StringBuilder();
         String teamWildCardGamesBack = "";
         String teamDivisionGamesBack = "";
@@ -178,6 +179,10 @@ public class PostGameService {
         } else {
             divisionName = feed.getGameData().getTeams().getAway().getDivision().getName();
         }
+
+        // Ex: American League West -> AL West
+        String[] splitDivisionNameBySpaces = divisionName.split(" ");
+        divisionName = splitDivisionNameBySpaces[0].charAt(0) + splitDivisionNameBySpaces[1].charAt(0) + " " + splitDivisionNameBySpaces[2];
 
         for (RecordsDTO record : standings.getRecords()) {
             if (record.getDivision().getId().equals(divisionId)) {
@@ -202,6 +207,7 @@ public class PostGameService {
         standingsToSend.append("=====================================\n");
         standingsToSend.append("Wildcard games back: ").append(teamWildCardGamesBack).append("\n");
         standingsToSend.append("Division games back: ").append(teamDivisionGamesBack);
+        log.info("STANDINGS STRING NOW RETURNED AND READY TO SEND!");
         return standingsToSend.toString();
     }
 
