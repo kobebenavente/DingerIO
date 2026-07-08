@@ -31,6 +31,8 @@ public class GameState {
     private boolean gameEndedMessageSent;
     private String startingHomePitcherId;
     private String startingAwayPitcherId;
+    private int numOfHomePitchers;
+    private int numOfAwayPitchers;
 
     public GameState() {
         this.gameStartingNotificationSent = false;
@@ -261,4 +263,19 @@ public class GameState {
         this.startingAwayPitcherId = startingAwayPitcherId;
     }
 
+    public int getNumOfAwayPitchers() {
+        return numOfAwayPitchers;
+    }
+
+    public void setNumOfAwayPitchers(int numOfAwayPitchers) {
+        this.numOfAwayPitchers = numOfAwayPitchers;
+    }
+
+    public int getNumOfHomePitchers() {
+        return numOfHomePitchers;
+    }
+
+    public void setNumOfHomePitchers(int numOfHomePitchers) {
+        this.numOfHomePitchers = numOfHomePitchers;
+    }
 }

@@ -87,6 +87,8 @@ public class LiveGameService {
             lastGameState.setTrackedMidGame(true);
             lastGameState.setStartingHomePitcherId(startingHomePitcherPlayerId);
             lastGameState.setStartingAwayPitcherId(startingAwayPitcherPlayerId);
+            lastGameState.setNumOfHomePitchers(homePitchingPlayerIds.size());
+            lastGameState.setNumOfAwayPitchers(awayPitchingPlayerIds.size());
             log.info("State tracking has started mid-game. Skipping notifications and updating game state.");
             return;
         }
@@ -106,6 +108,8 @@ public class LiveGameService {
             lastGameState.setDetailedState("In Progress");
             lastGameState.setStartingHomePitcherId(startingHomePitcherPlayerId);
             lastGameState.setStartingAwayPitcherId(startingAwayPitcherPlayerId);
+            lastGameState.setNumOfHomePitchers(homePitchingPlayerIds.size());
+            lastGameState.setNumOfAwayPitchers(awayPitchingPlayerIds.size());
         }
 
         //use the change in scoring plays to detect if a score has changed. since scoring plays
@@ -135,21 +139,15 @@ public class LiveGameService {
         }
 
         //CHECK IF PITCHER CHANGED
-        if ("Top".equals(inningHalf) && lastGameState.getCurrentHomePitcher() != null
-                && !("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
-                .getPitcher().getId()).equals(lastGameState.getCurrentHomePitcherId())) {
+        if(homePitchingPlayerIds.size() > lastGameState.getNumOfHomePitchers()){
             homePitcherChanged = true;
-        } else if ("Bottom".equals(inningHalf)
-                && lastGameState.getCurrentAwayPitcher() != null
-                && !("ID" + feed.getLiveData().getPlays().getCurrentPlay().getMatchup()
-                .getPitcher().getId()).equals(lastGameState.getCurrentAwayPitcherId())) {
+        }
+        if(awayPitchingPlayerIds.size() > lastGameState.getNumOfAwayPitchers()){
             awayPitcherChanged = true;
         }
 
-        boolean startingHomePitcherChanged = homePitcherChanged && lastGameState.getCurrentHomePitcherId()
-                .equals(startingHomePitcherPlayerId);
-        boolean startingAwayPitcherChanged = awayPitcherChanged && lastGameState.getCurrentAwayPitcherId()
-                .equals(startingAwayPitcherPlayerId);
+        boolean startingHomePitcherChanged = homePitcherChanged && homePitchingPlayerIds.size() == 2;
+        boolean startingAwayPitcherChanged = awayPitcherChanged && awayPitchingPlayerIds.size() == 2;
 
         //MLB API gives all plays as a list in the JSON response. In order to ensure we send out the proper notification for 
         //a score change, retrieve the last scoring play ID then loop through the list of plays starting from the end (order of 
