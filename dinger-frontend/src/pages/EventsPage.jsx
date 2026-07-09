@@ -2,102 +2,141 @@ import { useState, useEffect } from 'react'
 import styles from '../styles'
 import infoIcon from '../assets/info.png'
 
-const TOP_SECTIONS = [
-    {
-        title: 'Reminders',
-        events: [
-            { key: 'WEEKLY_SCHEDULE', label: 'Weekly Schedule' },
-            { key: 'GAME_DAY_REMINDER', label: 'Game Day Reminder' },
-            { key: 'GAME_STARTING', label: 'Game Starting' },
-        ]
-    },
-    {
-        title: 'Post-Game',
-        events: [
-            { key: 'END_GAME_STANDINGS', label: 'Division Standings' },
-            { key: 'GAME_END', label: 'Game Ended + Final Score' },
-        ]
-    },
-]
-
-const LIVE_EVENTS = [
-    { key: 'SCORE_CHANGE', label: 'Score Change' },
-    { key: 'HOMERUN', label: 'Home Run' },
-    { key: 'INNING_CHANGE', label: 'Inning Change' },
-    { key: 'HALF_INNING_CHANGE', label: 'Half Inning Change' },
-    { key: 'STARTING_PITCHER', label: 'Starting Pitchers' },
-    { key: 'PITCHER_CHANGE', label: 'Pitcher Change' },
-    { key: 'END_INNING_PITCHER_STATS', label: 'End Inning Pitcher Stats' },
-]
-
 const EVENT_PREVIEWS = {
-    WEEKLY_SCHEDULE: {
-        title: 'Weekly Schedule',
-        description: "Sent every Monday with your team's games for the week.",
-    },
     GAME_DAY_REMINDER: {
-        title: 'Game Day Reminder',
-        description: 'Sent 2-3 hours before game starts.',
+        title: 'Game Day Reminder/Overview',
+        description: 'Sent 2-3 hours before game starts with a preview of the matchup.',
     },
-    GAME_STARTING: {
-        title: 'Game Starting',
-        description: 'Sent a few minutes before the first inning begins.',
-    },
-    END_GAME_STANDINGS: {
-        title: 'Division Standings',
-        description: `Sent after each game with updated division standings. Includes games behind for first in division
-        and games behind for a wildcard spot.`,
+    GAME_DAY_LINEUP: {
+        title: 'Confirmed Starting Lineup',
+        description: 'Sent when the official starting lineup is announced before the game.',
     },
     GAME_END: {
         title: 'Game Ended + Final Score',
         description: 'Sent when the game ends with the final score.',
     },
+    END_GAME_STANDINGS: {
+        title: 'Updated Division Standing + Games Behind',
+        description: 'Sent after each game with updated division standings and games behind.',
+    },
+    BOX_SCORE: {
+        title: 'Box Score',
+        description: 'Sent after the game ends with the full batting and pitching box score.',
+    },
+    WEEKLY_SCHEDULE: {
+        title: 'Weekly Schedule',
+        description: "Sent every Monday with your team's games for the week.",
+    },
+    END_DAY_STANDINGS: {
+        title: 'End-of-Day Division Standings + Games Behind',
+        description: 'Sent each evening with the current division standings and games behind.',
+    },
+    GAME_STARTING: {
+        title: 'Game Started',
+        description: 'Sent a few minutes before the first inning begins.',
+    },
     SCORE_CHANGE: {
-        title: 'Score Change',
-        description: 'Sent whenever the score changes during a live game.',
+        title: 'All Score Changes',
+        description: 'Sent whenever any run scores during a live game.',
     },
-    HOMERUN: {
-        title: 'Home Run',
-        description: 'Sent when a player hits a home run.',
-    },
-    INNING_CHANGE: {
-        title: 'Inning Change',
-        description: `Sent at the start of each new inning. Includes the score.`,
-    },
-    HALF_INNING_CHANGE: {
-        title: 'Half Inning Change',
-        description: 'Sent at every half-inning (top and bottom). Includes the score.',
-    },
-    STARTING_PITCHER: {
-        title: 'Starting Pitchers',
-        description: 'Sent at the start of every game (includes starting pitcher for other team).',
+    LEAD_CHANGE: {
+        title: 'Lead Changes Only',
+        description: 'Sent only when the lead changes hands during a live game.',
     },
     PITCHER_CHANGE: {
-        title: 'Pitcher Change',
-        description: 'Sent when a new pitcher enters the game.',
+        title: 'Pitcher Changes',
+        description: 'Sent whenever a new pitcher enters the game.',
     },
-    END_INNING_PITCHER_STATS: {
-        title: 'End Inning Pitcher Stats',
-        description: "Sent at the end of each inning with the pitcher's current stats.",
+    STARTING_PITCHER_CHANGE: {
+        title: 'Starter Pulled Only',
+        description: 'Sent only when the starting pitcher is removed from the game.',
+    },
+    INNING_CHANGE: {
+        title: 'End of Inning',
+        description: 'Sent at the end of each inning with the current score and pitcher stats.',
+    },
+    WALKOFF: {
+        title: 'Walk-off Situation',
+        description: 'Sent when the home team comes to bat in the 9th with a chance to win.',
+    },
+    EXTRA_INNINGS: {
+        title: 'Extra Innings',
+        description: 'Sent when the game goes to extra innings.',
+    },
+    PITCHER_DOMINATING: {
+        title: 'Pitcher Dominating',
+        description: "Sent when a pitcher is having an exceptional outing (high K's, low hits).",
+    },
+    NO_HITTER: {
+        title: 'No-Hitter In Progress',
+        description: 'Sent when a pitcher has a no-hitter going into the late innings.',
     },
 }
 
-function CheckItem({ label, checked, onToggle, onInfo }) {
+function Checkbox({ checked }) {
+    return (
+        <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
+            <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: '2px solid #000000' }} />
+            {checked && (
+                <img src="/mark.png" style={{ position: 'absolute', top: '-7px', left: '-3px', width: '28px', height: '28px' }} />
+            )}
+        </div>
+    )
+}
+
+function CheckItem({ label, eventKey, checked, onToggle, onInfo }) {
     return (
         <div style={checkItemStyle} onClick={onToggle}>
-            <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
-                <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: '2px solid #000000' }} />
-                {checked && (
-                    <img src="/mark.png" style={{ position: 'absolute', top: '-7px', left: '-3px', width: '28px', height: '28px' }} />
-                )}
-            </div>
+            <Checkbox checked={checked} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={checkLabelStyle}>{label}</span>
                 <img
                     src={infoIcon}
                     style={infoIconStyle}
-                    onClick={(e) => { e.stopPropagation(); onInfo() }}
+                    onClick={(e) => { e.stopPropagation(); onInfo(eventKey) }}
                 />
+            </div>
+        </div>
+    )
+}
+
+function MutualCheckRow({ leftKey, leftLabel, rightKey, rightLabel, selected, onToggle, onInfo }) {
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={checkItemStyle} onClick={() => onToggle(leftKey, rightKey)}>
+                <Checkbox checked={selected.has(leftKey)} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={checkLabelStyle}>{leftLabel}</span>
+                    <img src={infoIcon} style={infoIconStyle} onClick={(e) => { e.stopPropagation(); onInfo(leftKey) }} />
+                </div>
+            </div>
+            <span style={{ color: '#ffffff', fontWeight: '700', fontSize: '1rem' }}>|</span>
+            <div style={checkItemStyle} onClick={() => onToggle(rightKey, leftKey)}>
+                <Checkbox checked={selected.has(rightKey)} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={checkLabelStyle}>{rightLabel}</span>
+                    <img src={infoIcon} style={infoIconStyle} onClick={(e) => { e.stopPropagation(); onInfo(rightKey) }} />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function SectionCard({ title, titleInfo, onTitleInfo, children }) {
+    return (
+        <div style={sectionCardStyle}>
+            <div style={sectionTitleBannerStyle}>
+                <span style={sectionTitleStyle}>{title}</span>
+                {titleInfo && (
+                    <img
+                        src={infoIcon}
+                        style={{ ...infoIconStyle, opacity: 0.8 }}
+                        onClick={(e) => { e.stopPropagation(); onTitleInfo() }}
+                    />
+                )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0.75rem 0.25rem 0' }}>
+                {children}
             </div>
         </div>
     )
@@ -105,6 +144,7 @@ function CheckItem({ label, checked, onToggle, onInfo }) {
 
 function InfoModal({ eventKey, onClose }) {
     const preview = EVENT_PREVIEWS[eventKey]
+    if (!preview) return null
     return (
         <div style={modalOverlayStyle} onClick={onClose}>
             <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
@@ -127,6 +167,8 @@ function EventsPage({ setPage }) {
     const [infoEvent, setInfoEvent] = useState(null)
     const [webhook, setWebhook] = useState('')
     const [originalWebhook, setOriginalWebhook] = useState('')
+    const [webhookSaved, setWebhookSaved] = useState(false)
+    const [webhookError, setWebhookError] = useState('')
 
     useEffect(() => {
         const loadSubscription = async () => {
@@ -148,10 +190,19 @@ function EventsPage({ setPage }) {
     const toggle = (key) => {
         setSaved(false)
         const next = new Set(selected)
+        if (next.has(key)) next.delete(key)
+        else next.add(key)
+        setSelected(next)
+    }
+
+    const toggleExclusive = (key, exclusiveWith) => {
+        setSaved(false)
+        const next = new Set(selected)
         if (next.has(key)) {
             next.delete(key)
         } else {
             next.add(key)
+            next.delete(exclusiveWith)
         }
         setSelected(next)
     }
@@ -160,19 +211,8 @@ function EventsPage({ setPage }) {
         setError('')
         const token = localStorage.getItem('token')
 
-        const toAdd = []
-        for (const event of selected) {
-            if (!original.has(event)) {
-                toAdd.push(event)
-            }
-        }
-
-        const toRemove = []
-        for (const event of original) {
-            if (!selected.has(event)) {
-                toRemove.push(event)
-            }
-        }
+        const toAdd = [...selected].filter(e => !original.has(e))
+        const toRemove = [...original].filter(e => !selected.has(e))
 
         if (toAdd.length > 0) {
             const res = await fetch('http://localhost:8080/api/subscription/add-event', {
@@ -180,10 +220,7 @@ function EventsPage({ setPage }) {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ notificationEvents: toAdd })
             })
-            if (!res.ok) {
-                setError('Failed to save changes.')
-                return
-            }
+            if (!res.ok) { setError('Failed to save changes.'); return }
         }
 
         if (toRemove.length > 0) {
@@ -192,91 +229,125 @@ function EventsPage({ setPage }) {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ notificationEvents: toRemove })
             })
-            if (!res.ok) {
-                setError('Failed to save changes.')
-                return
-            }
-        }
-
-        if (webhook !== originalWebhook) {
-            const res = await fetch('http://localhost:8080/api/auth/discord-webhook', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(webhook)
-            })
-            if (!res.ok) {
-                setError('Failed to save webhook.')
-                return
-            }
-            setOriginalWebhook(webhook)
+            if (!res.ok) { setError('Failed to save changes.'); return }
         }
 
         setOriginal(new Set(selected))
         setSaved(true)
     }
 
-return (
-    <div style={pageStyle}>
-        <div style={{ ...styles.logoWrapper, marginBottom: '0.75rem' }}>
-            {mlbTeamId && (
-                <img src={`/logos/${mlbTeamId}.png`} alt="" style={teamLogoStyle} />
-            )}
-            <h1 style={{ ...styles.title, bottom: '10px', textShadow: '0 4px 20px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5)' }}>DingerIO</h1>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem' }}>
-            <span style={webhookLabelStyle}>Discord Webhook URL</span>
-            <input
-                style={{ ...styles.input, width: '320px', backgroundColor: '#626262' }}
-                type="text"
-                value={webhook}
-                onChange={(e) => setWebhook(e.target.value)}
-            />
-        </div>
-        <div style={dashboardStyle}>
-            <img src="/settings.png" alt="settings" style={settingsIconStyle} onClick={() => setPage('settings')} />
-            <div style={panelStyle}>
-                <div style={topRowStyle}>
-                    {TOP_SECTIONS.map(section => (
-                        <div key={section.title} style={{ ...sectionCardStyle, flex: 1 }}>
-                            <p style={sectionTitleStyle}>{section.title}</p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                {section.events.map(event => (
-                                    <CheckItem
-                                        key={event.key}
-                                        label={event.label}
-                                        checked={selected.has(event.key)}
-                                        onToggle={() => toggle(event.key)}
-                                        onInfo={() => setInfoEvent(event.key)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+    const handleSaveWebhook = async () => {
+        setWebhookError('')
+        setWebhookSaved(false)
+        const token = localStorage.getItem('token')
+        const res = await fetch('http://localhost:8080/api/auth/discord-webhook', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(webhook)
+        })
+        if (!res.ok) { setWebhookError('Failed to save.'); return }
+        setOriginalWebhook(webhook)
+        setWebhookSaved(true)
+    }
+
+    const ci = (key, label) => (
+        <CheckItem
+            key={key}
+            eventKey={key}
+            label={label}
+            checked={selected.has(key)}
+            onToggle={() => toggle(key)}
+            onInfo={setInfoEvent}
+        />
+    )
+
+    return (
+        <div style={pageStyle}>
+            <div style={{ ...styles.logoWrapper, marginBottom: '2rem', marginTop: '-0.5rem' }}>
+                <img src="/bell_logo.png" alt="" style={bellStyle} />
+                <h1 style={{ ...styles.title, fontSize: '2.6rem', bottom: '10px', textShadow: '0 4px 20px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5)' }}>DingerIO</h1>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem' }}>
+                <span style={webhookLabelStyle}>Discord Webhook URL</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                        style={{ ...styles.input, width: '280px', backgroundColor: '#626262' }}
+                        type="text"
+                        value={webhook}
+                        onChange={(e) => { setWebhook(e.target.value); setWebhookSaved(false) }}
+                    />
+                    <button style={styles.button} onClick={handleSaveWebhook}>Save</button>
                 </div>
-                <div style={sectionCardStyle}>
-                    <p style={sectionTitleStyle}>Live Game Updates</p>
-                    <div style={liveGridStyle}>
-                        {LIVE_EVENTS.map(event => (
-                            <CheckItem
-                                key={event.key}
-                                label={event.label}
-                                checked={selected.has(event.key)}
-                                onToggle={() => toggle(event.key)}
-                                onInfo={() => setInfoEvent(event.key)}
-                            />
-                        ))}
+                {webhookSaved && <span style={successTextStyle}>Saved!</span>}
+                {webhookError && <span style={styles.errorText}>{webhookError}</span>}
+            </div>
+
+            <div style={dashboardStyle}>
+                <img src="/settings.png" alt="settings" style={settingsIconStyle} onClick={() => setPage('settings')} />
+
+                <div style={panelStyle}>
+                    {/* Row 1: Pre Game | Post Game | Schedule & Standings */}
+                    <div style={topRowStyle}>
+                        <SectionCard title="Pre Game" titleInfo onTitleInfo={() => setInfoEvent('GAME_DAY_REMINDER')}>
+                            {ci('GAME_DAY_REMINDER', 'Game Day Reminder/Overview')}
+                            {ci('GAME_DAY_LINEUP', 'Confirmed Starting Lineup')}
+                        </SectionCard>
+
+                        <SectionCard title="Post Game">
+                            {ci('GAME_END', 'Game Ended + Final Score')}
+                            {ci('END_GAME_STANDINGS', 'Updated Division Standing + Games Behind')}
+                            {ci('BOX_SCORE', 'Box Score')}
+                        </SectionCard>
+
+                        <SectionCard title="Schedule & Standings">
+                            {ci('WEEKLY_SCHEDULE', 'Weekly Schedule')}
+                            {ci('END_DAY_STANDINGS', 'End-of-Day Division Standings + Games Behind')}
+                        </SectionCard>
                     </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                    <button style={styles.button} onClick={handleSave}>Save</button>
-                    {saved && <span style={successTextStyle}>Saved!</span>}
-                    {error && <span style={styles.errorText}>{error}</span>}
+
+                    {/* Row 2: Live Game | Live Game Tune-In Alerts */}
+                    <div style={bottomRowStyle}>
+                        <SectionCard title="Live Game">
+                            {ci('GAME_STARTING', 'Game Started')}
+                            <MutualCheckRow
+                                leftKey="SCORE_CHANGE" leftLabel="All Score Changes"
+                                rightKey="LEAD_CHANGE" rightLabel="Lead Changes Only"
+                                selected={selected}
+                                onToggle={toggleExclusive}
+                                onInfo={setInfoEvent}
+                            />
+                            <MutualCheckRow
+                                leftKey="PITCHER_CHANGE" leftLabel="Pitcher Changes"
+                                rightKey="STARTING_PITCHER_CHANGE" rightLabel="Starter Pulled Only"
+                                selected={selected}
+                                onToggle={toggleExclusive}
+                                onInfo={setInfoEvent}
+                            />
+                            {ci('INNING_CHANGE', 'End of Inning')}
+                        </SectionCard>
+
+                        <SectionCard title='Live Game "Tune-In" Alerts'>
+                            {ci('WALKOFF', 'Walk-off situation')}
+                            {ci('EXTRA_INNINGS', 'Extra Innings')}
+                            {ci('PITCHER_DOMINATING', 'Pitcher Dominating')}
+                            {ci('NO_HITTER', 'No-Hitter In Progress')}
+                        </SectionCard>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        <button style={styles.button} onClick={handleSave}>Save</button>
+                        {saved && <span style={successTextStyle}>Saved!</span>}
+                        {error && <span style={styles.errorText}>{error}</span>}
+                    </div>
+                    {mlbTeamId && (
+                        <img src={`/logos/${mlbTeamId}.png`} alt="" style={teamLogoIconStyle} />
+                    )}
                 </div>
             </div>
+
+            {infoEvent && <InfoModal eventKey={infoEvent} onClose={() => setInfoEvent(null)} />}
         </div>
-        {infoEvent && <InfoModal eventKey={infoEvent} onClose={() => setInfoEvent(null)} />}
-    </div>
-)
+    )
 }
 
 const pageStyle = {
@@ -285,20 +356,10 @@ const pageStyle = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
-    backgroundColor: '#737373',
+    backgroundColor: '#434343',
     fontFamily: "'Quicksand', sans-serif",
     padding: '2rem 1rem',
     boxSizing: 'border-box',
-}
-
-const contentWrapperStyle = {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '1.5rem',
-    width: '100%',
-    maxWidth: '700px',
 }
 
 const settingsIconStyle = {
@@ -311,14 +372,42 @@ const settingsIconStyle = {
     opacity: 0.8,
 }
 
-const teamLogoStyle = {
+const bellStyle = {
+    width: '175px',
     position: 'absolute',
-    width: '135px',
-    height: '135px',
-    objectFit: 'contain',
-    opacity: 0.7,
+    left: '50%',
+    top: '30%',
+    transform: 'translateX(-50%) translateY(-50%)',
+    zIndex: 0,
     pointerEvents: 'none',
-    bottom: '-10px'
+}
+
+const subbedTeamStyle = {
+    position: 'absolute',
+    top: '-48px',
+    left: 0,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+}
+
+const subbedTeamLabelStyle = {
+    color: '#dddddd',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    fontFamily: "'Quicksand', sans-serif",
+    whiteSpace: 'nowrap',
+}
+
+const teamLogoIconStyle = {
+    position: 'absolute',
+    bottom: '1rem',
+    right: '1rem',
+    width: '80px',
+    height: '80px',
+    objectFit: 'contain',
+    opacity: 0.85,
+    pointerEvents: 'none',
 }
 
 const dashboardStyle = {
@@ -327,7 +416,7 @@ const dashboardStyle = {
     flexDirection: 'column',
     gap: '1.25rem',
     width: '100%',
-    maxWidth: '850px',
+    maxWidth: '960px',
 }
 
 const panelStyle = {
@@ -346,27 +435,37 @@ const topRowStyle = {
     gap: '1.25rem',
 }
 
+const bottomRowStyle = {
+    display: 'flex',
+    gap: '1.25rem',
+    justifyContent: 'center',
+}
+
 const sectionCardStyle = {
-    backgroundColor: '#868686',
+    flex: 1,
+    backgroundColor: '#6c6c6c',
     borderRadius: '10px',
-    padding: '1.25rem 1.5rem',
+    padding: '0.75rem 1.25rem 1.25rem',
+}
+
+const sectionTitleBannerStyle = {
+    backgroundColor: '#545454',
+    borderRadius: '7px',
+    padding: '0.5rem 1.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.4rem',
+    marginBottom: '0',
 }
 
 const sectionTitleStyle = {
-    fontSize: '1.4rem',
-    fontWeight: '700',
+    fontSize: '1.2rem',
+    fontWeight: '400',
     color: '#ffffff',
     fontFamily: "'Parkinsans', sans-serif",
-    marginBottom: '0.9rem',
     textAlign: 'center',
     textShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
-}
-
-const liveGridStyle = {
-    display: 'grid',
-    gridTemplateRows: 'repeat(3, auto)',
-    gridAutoFlow: 'column',
-    gap: '0.75rem 1.25rem',
 }
 
 const checkItemStyle = {
@@ -378,7 +477,7 @@ const checkItemStyle = {
 
 const checkLabelStyle = {
     color: '#ffffff',
-    fontSize: '0.98rem',
+    fontSize: '0.95rem',
     fontWeight: '600',
     fontFamily: "'Quicksand', sans-serif",
 }
@@ -454,52 +553,6 @@ const modalDescStyle = {
     fontFamily: "'Quicksand', sans-serif",
     fontWeight: '600',
     margin: 0,
-}
-
-const modalPreviewLabelStyle = {
-    color: '#aaaaaa',
-    fontSize: '0.72rem',
-    fontFamily: "'Quicksand', sans-serif",
-    fontWeight: '600',
-    margin: 0,
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-}
-
-const discordEmbedStyle = {
-    backgroundColor: '#2f3136',
-    borderRadius: '4px',
-    display: 'flex',
-    overflow: 'hidden',
-}
-
-const embedBorderStyle = {
-    width: '4px',
-    backgroundColor: '#5865f2',
-    flexShrink: 0,
-}
-
-const embedContentStyle = {
-    padding: '0.6rem 0.75rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-}
-
-const embedTitleStyle = {
-    color: '#ffffff',
-    fontSize: '0.9rem',
-    fontWeight: '700',
-    fontFamily: "'Quicksand', sans-serif",
-    margin: 0,
-}
-
-const embedBodyStyle = {
-    color: '#dcddde',
-    fontSize: '0.82rem',
-    fontFamily: "'Quicksand', sans-serif",
-    margin: 0,
-    whiteSpace: 'pre-line',
 }
 
 export default EventsPage

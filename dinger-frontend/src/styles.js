@@ -16,9 +16,9 @@ const styles = {
     swingImage: {
         width: '215px',
         position: 'absolute',
-        left: '-85px',
-        top: '48%',
-        transform: 'translateY(-50%)',
+        left: '50%',
+        top: '50%',
+        transform: 'translateX(-50%) translateY(-50%)',
         zIndex: 0,
         pointerEvents: 'none',
     },
