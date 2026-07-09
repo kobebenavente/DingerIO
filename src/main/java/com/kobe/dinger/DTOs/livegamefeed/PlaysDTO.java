@@ -8,6 +8,8 @@ public class PlaysDTO {
     List<AllPlaysDTO> allPlays;
     List<Integer> scoringPlays;
     CurrentPlayDTO currentPlay;
+    List<PlaysByInningDTO> playsByInning;
+
 
     public CurrentPlayDTO getCurrentPlay() {
         return currentPlay;
@@ -28,4 +30,13 @@ public class PlaysDTO {
     public void setScoringPlays(List<Integer> scoringPlays){
         this.scoringPlays = scoringPlays;
     }
+    public List<PlaysByInningDTO> getPlaysByInning() {
+        return playsByInning;
+    }
+
+    public void setPlaysByInning(List<PlaysByInningDTO> playsByInning) {
+        this.playsByInning = playsByInning;
+    }
+
+
 }

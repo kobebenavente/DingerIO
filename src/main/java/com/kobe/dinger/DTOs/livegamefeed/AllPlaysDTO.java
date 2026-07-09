@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class AllPlaysDTO {
     private ResultDTO result;
     private AboutDTO about;
+    private MatchupDTO matchup;
 
     public ResultDTO getResult(){
         return result;
@@ -20,4 +21,13 @@ public class AllPlaysDTO {
     public void setAbout(AboutDTO about){
         this.about = about;
     }
+
+    public MatchupDTO getMatchup() {
+        return matchup;
+    }
+
+    public void setMatchup(MatchupDTO matchup) {
+        this.matchup = matchup;
+    }
+
 }

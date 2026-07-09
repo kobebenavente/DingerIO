@@ -1,0 +1,24 @@
+package com.kobe.dinger.DTOs.livegamefeed;
+
+public class LinescoreInningsDTO {
+    LinescoreInningTeamWrapperDTO home;
+    LinescoreInningTeamWrapperDTO away;
+
+    public LinescoreInningTeamWrapperDTO getHome() {
+        return home;
+    }
+
+    public void setHome(LinescoreInningTeamWrapperDTO home) {
+        this.home = home;
+    }
+
+    public LinescoreInningTeamWrapperDTO getAway() {
+        return away;
+    }
+
+    public void setAway(LinescoreInningTeamWrapperDTO away) {
+        this.away = away;
+    }
+
+
+}
