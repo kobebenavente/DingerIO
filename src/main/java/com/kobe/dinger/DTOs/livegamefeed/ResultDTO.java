@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class ResultDTO {
     private String description;
     private String eventType;
+    private String event;
+    private int rbi;
     private int homeScore;
     private int awayScore;
 
@@ -36,4 +38,23 @@ public class ResultDTO {
     public void setAwayScore(int awayScore){
         this.awayScore = awayScore;
     }
+
+    public int getRbi() {
+        return rbi;
+    }
+
+    public void setRbi(int rbi) {
+        this.rbi = rbi;
+    }
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+
+
+
 }
