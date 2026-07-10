@@ -182,7 +182,7 @@ public class PostGameService {
 
         // Ex: American League West -> AL West
         String[] splitDivisionNameBySpaces = divisionName.split(" ");
-        divisionName = splitDivisionNameBySpaces[0].charAt(0) + splitDivisionNameBySpaces[1].charAt(0) + " " + splitDivisionNameBySpaces[2];
+        divisionName = "" + splitDivisionNameBySpaces[0].charAt(0) + splitDivisionNameBySpaces[1].charAt(0) + " " + splitDivisionNameBySpaces[2];
 
         for (RecordsDTO record : standings.getRecords()) {
             if (record.getDivision().getId().equals(divisionId)) {
