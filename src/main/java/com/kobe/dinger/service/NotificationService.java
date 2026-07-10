@@ -44,11 +44,11 @@ public class NotificationService {
 
     public String generateLineScores(boolean subbedTeamIsHomeTeam, int currentHomeScore, int currentAwayScore, Team homeTeam, Team awayTeam) {
         if (subbedTeamIsHomeTeam) {
-            return homeTeam.getTeamEmoji() + " " + homeTeam.getTeamName() + ": " + currentHomeScore + " | "
-                    + awayTeam.getTeamName() + ": " + currentAwayScore  + " " +  awayTeam.getTeamEmoji();
+            return homeTeam.getTeamName() + ": " + currentHomeScore + " | "
+                    + awayTeam.getTeamName() + ": " + currentAwayScore;
         } else {
-            return awayTeam.getTeamEmoji() + " " + awayTeam.getTeamName() + ": " + currentAwayScore + " | "
-                     + homeTeam.getTeamName() + ": " + currentHomeScore + " " + homeTeam.getTeamEmoji();
+            return awayTeam.getTeamName() + ": " + currentAwayScore + " | "
+                     + homeTeam.getTeamName() + ": " + currentHomeScore;
         }
     }
 

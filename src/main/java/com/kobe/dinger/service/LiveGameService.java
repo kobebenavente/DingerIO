@@ -241,31 +241,40 @@ public class LiveGameService {
                 if(subbedTeamIsHomeTeam && homePitcherChanged){
                     log.info("Now attempting pitcher change message for {}", homeTeam.getTeamName());
                     if(events.contains(NotificationEvent.PITCHER_CHANGE)){
-                        String message = "## 🔄 Pitcher Pulled \n" + feed.getGameData().getPlayers().get(homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) +
-                                " (" + generatePitcherStatLine(true, feed, lastGameState, homePitchingPlayerIds.getLast()) + ") " +
-                                "is replaced by " +
+                        String message = "## 🔄 Pitcher Pulled \n" + feed.getGameData().getPlayers()
+                                .get(homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2))
+                                + " (" + generatePitcherStatLine(true, feed, lastGameState
+                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) + ") "
+                                + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
                     } else if (startingHomePitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
-                        String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers().get(homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) +
-                                " (" + generatePitcherStatLine(true, feed, lastGameState, homePitchingPlayerIds.getLast()) + ") " +
-                                "is replaced by " +
+                        String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
+                                .get(homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2))
+                                + " (" + generatePitcherStatLine(true, feed, lastGameState
+                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) + ") "
+                                + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
                     }
                 } else if (!subbedTeamIsHomeTeam && awayPitcherChanged){
                     log.info("Now attempting pitcher change message for {}", awayTeam.getTeamName());
                     if(events.contains(NotificationEvent.PITCHER_CHANGE)){
-                        String message = "## 🔄 Pitcher Pulled \n" + lastGameState.getCurrentAwayPitcher() +
-                                " (" + generatePitcherStatLine(false, feed, lastGameState, awayPitchingPlayerIds.getLast()) + ") " +
-                                "is replaced by " +
-                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        String message = "## 🔄 Pitcher Pulled \n" + feed.getGameData().getPlayers()
+                                .get(awayPitchingPlayerIds.get(awayPitchingPlayerIds.size() - 2)) +
+                                " (" + generatePitcherStatLine(false, feed, lastGameState
+                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2)) + ") "
+                                + "is replaced by "
+                                + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
                     } else if (startingAwayPitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
-                        String message = "## 🔄 Starting Pitcher Pulled \n" + lastGameState.getCurrentAwayPitcher() +
-                                " (" + generatePitcherStatLine(false, feed, lastGameState, awayPitchingPlayerIds.getLast()) + ") " +
-                                "is replaced by " +
-                                feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
+                        String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
+                                .get(awayPitchingPlayerIds.get(awayPitchingPlayerIds.size() - 2)) +
+                                " (" + generatePitcherStatLine(false, feed, lastGameState
+                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2))
+                                + ") "
+                                + "is replaced by "
+                                + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
                     }
                 }
@@ -276,7 +285,7 @@ public class LiveGameService {
                 if (currentInning > 1) {
                     StringBuilder pitcherStatlines = new StringBuilder();
                     if(subbedTeamIsHomeTeam){
-                        pitcherStatlines.append(homeTeam.getTeamName()).append(" pitching:\n");
+                        pitcherStatlines.append("⚾ ").append(homeTeam.getTeamName()).append(inningOrdinal).append(" inning pitcher stats:\n");
                         log.info("Now attempting inning change pitcher statline string for {}", homeTeam.getTeamName());
                         for(int i = 0; i < lastInningHomePitchers.size(); i++){
                             //STOPPED HERE - CONTINUE.
@@ -287,7 +296,7 @@ public class LiveGameService {
                             }
                         }
                     } else {
-                        pitcherStatlines.append(awayTeam.getTeamName()).append("pitching:\n");
+                        pitcherStatlines.append("⚾ ").append(awayTeam.getTeamName()).append(" ").append(inningOrdinal).append(" inning pitcher stats:\n");
                         log.info("Now attempting inning change pitcher statline string for {}", awayTeam.getTeamName());
                         for(int i = 0; i < lastInningAwayPitchers.size(); i++){
                             //STOPPED HERE - CONTINUE.
@@ -298,12 +307,12 @@ public class LiveGameService {
                             }
                         }
                     }
-                    String message = "## 🔴 End of Inning " + (currentInning - 1)
+                    String message = "## 🔴 End of " + inningOrdinal
                             + " — " + notificationService.generateLineScores(subbedTeamIsHomeTeam
                             , currentHomeScore, currentAwayScore, homeTeam, awayTeam) + "\n"
                             + generateInningChangeSummary(subbedTeamIsHomeTeam, feed,  homeTeam, awayTeam, currentInning-1, topInningPlayIds, bottomInningPlayIds)
                             + "\n\n" + pitcherStatlines
-                            + "\n\n" + "Inning " + currentInning + " is underway!";
+                            + "\n\n" + inningOrdinal + " inning is underway!";
                     notificationService.sendEmbed(sub, message);
                 }
             }
@@ -469,15 +478,6 @@ public class LiveGameService {
                 , stats.getStrikeOuts(), stats.getNumberOfPitches());
     }
 
-    /*
-                        String message = "## 🔴 End of Inning " + (currentInning - 1)
-                            + " — " + notificationService.generateLineScores(subbedTeamIsHomeTeam
-                            , currentHomeScore, currentAwayScore, homeTeam, awayTeam)
-                            + "\n" + pitcherStatlines
-                            + "\n\n" + "Inning " + currentInning + " is underway!";
-                    notificationService.sendEmbed(sub, message);
-     */
-
     public String generateInningChangeSummary(boolean subbedTeamIsHomeTeam, LiveFeedResponseDTO feed, Team homeTeam, Team awayTeam, int lastInning
             , List<Integer> topInningPlayIds, List<Integer> bottomInningPlayIds ) {
         int homeTeamRuns = feed.getLiveData().getLinescore().getInnings().get(lastInning - 1).getHome().getRuns();
@@ -491,7 +491,11 @@ public class LiveGameService {
             List<AllPlaysDTO> allPlays = feed.getLiveData().getPlays().getAllPlays();
 
             if (subbedTeamIsHomeTeam) {
-                stringToReturn.append("🎉 ").append(homeTeam.getTeamName()).append(" scored ").append(homeTeamRuns).append(" runs:\n");
+                if(homeTeamRuns > 1){
+                    stringToReturn.append("🎉 ").append(homeTeam.getTeamName()).append(" scored ").append(homeTeamRuns).append(" runs:\n");
+                } else {
+                    stringToReturn.append("🎉 ").append(homeTeam.getTeamName()).append(" scored ").append(homeTeamRuns).append(" run:\n");
+                }
                 for (Integer bottomInningPlayId : bottomInningPlayIds) {
                     AllPlaysDTO play = allPlays.get(bottomInningPlayId);
                     if (play.getAbout().isScoringPlay()) {
@@ -502,7 +506,11 @@ public class LiveGameService {
                     }
                 }
             } else {
-                stringToReturn.append(awayTeam.getTeamName()).append(" scored ").append(awayTeamRuns).append(" runs:\n");
+                if(awayTeamRuns > 1){
+                    stringToReturn.append("🎉 ").append(awayTeam.getTeamName()).append(" scored ").append(awayTeamRuns).append(" runs:\n");
+                } else {
+                    stringToReturn.append("🎉 ").append(awayTeam.getTeamName()).append(" scored ").append(awayTeamRuns).append(" run:\n");
+                }
                 for (Integer topInningPlayId : topInningPlayIds) {
                     AllPlaysDTO play = allPlays.get(topInningPlayId);
                     if (play.getAbout().isScoringPlay()) {
@@ -516,10 +524,10 @@ public class LiveGameService {
         }
 
         if (subbedTeamIsHomeTeam && awayTeamRuns > 0) {
-            stringToReturn.append("\n").append(awayTeam.getTeamName()).append(" scored ").append(awayTeamRuns).append(" runs.");
+            stringToReturn.append("\n").append("👎 ").append(awayTeam.getTeamName()).append(" scored ").append(awayTeamRuns).append(" runs.");
         }
         if (!subbedTeamIsHomeTeam && homeTeamRuns > 0) {
-            stringToReturn.append("\n").append(homeTeam.getTeamName()).append(" scored ").append(homeTeamRuns).append(" runs.");
+            stringToReturn.append("\n").append("👎 ").append(homeTeam.getTeamName()).append(" scored ").append(homeTeamRuns).append(" runs.");
         }
         return stringToReturn.toString();
     }
