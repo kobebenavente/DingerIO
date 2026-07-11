@@ -123,9 +123,9 @@ public class PostGameService {
 
                 try {
                     if(subbedTeamIsHomeTeam){
-                        gameEndMessage.append("\n").append(generateBoxScoreMessage(homeBatters,homePitchers,feed,true));
+                        gameEndMessage.append("\n").append(generateBoxScoreMessage(homeBatters,homePitchers,feed,true,homeTeam.getTeamName()));
                     } else {
-                        gameEndMessage.append("\n").append(generateBoxScoreMessage(awayBatters,awayPitchers,feed,false));
+                        gameEndMessage.append("\n").append(generateBoxScoreMessage(awayBatters,awayPitchers,feed,false,awayTeam.getTeamName()));
                     }
                 } catch (Exception e) {
                     log.error("Failed to generate box score for game {}", gamePk, e);
@@ -213,7 +213,7 @@ public class PostGameService {
 
 
     public String generateBoxScoreMessage(List<Integer> batters, List<Integer> pitchers, LiveFeedResponseDTO feed
-    , boolean isHomeTeam){
+    , boolean isHomeTeam, String teamName){
 
         log.info("NOW CALLING generateBoxScoreMessage() | SUBBED TEAM IS HOME TEAM = {}", isHomeTeam);
         log.info("Batters: {}", batters);
@@ -274,8 +274,12 @@ public class PostGameService {
                  Integer rbi = boxScorePlayerDTO.getStats().getBatting().getRbi();
                  Integer baseOnBalls = boxScorePlayerDTO.getStats().getBatting().getBaseOnBalls();
                  Integer homeRuns = boxScorePlayerDTO.getStats().getBatting().getHomeRuns();
-
-                 batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits);
+                 String avg = null, ops = null;
+                 if (boxScorePlayerDTO.getSeasonStats() != null && boxScorePlayerDTO.getSeasonStats().getBatting() != null) {
+                     avg = boxScorePlayerDTO.getSeasonStats().getBatting().getAvg();
+                     ops = boxScorePlayerDTO.getSeasonStats().getBatting().getOps();
+                 }
+                 batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits, avg, ops);
                  playingBatters.add(batter);
             } else {
                 boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
@@ -293,32 +297,42 @@ public class PostGameService {
                 Integer rbi = boxScorePlayerDTO.getStats().getBatting().getRbi();
                 Integer baseOnBalls = boxScorePlayerDTO.getStats().getBatting().getBaseOnBalls();
                 Integer homeRuns = boxScorePlayerDTO.getStats().getBatting().getHomeRuns();
-
-                batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits);
+                String avg = null, ops = null;
+                if (boxScorePlayerDTO.getSeasonStats() != null && boxScorePlayerDTO.getSeasonStats().getBatting() != null) {
+                    avg = boxScorePlayerDTO.getSeasonStats().getBatting().getAvg();
+                    ops = boxScorePlayerDTO.getSeasonStats().getBatting().getOps();
+                }
+                batter = new LineupBatter(useName, useLastName,positionAbbreviation, homeRuns, rbi, runs, atBats, baseOnBalls, hits, avg, ops);
                 playingBatters.add(batter);
             }
 
         }
         log.info("PITCHERS AND BATTERS ADDED TO THEIR LISTS. NOW BUILDING STRING.");
+        final int ROW_WIDTH = 32;
         StringBuilder stringToSend = new StringBuilder("```\n");
-        stringToSend.append("           Box Score\n\n");
 
-        stringToSend.append("    Batters    AB R  H RBI BB HR\n");
-        stringToSend.append("================================\n");
-        String battersRowFormat = "%-14s %-2d %-2d %-2d %-2d %-2d %-2d\n";
+        String battingTitle = teamName + " Batting:";
+        int titlePadding = (ROW_WIDTH - battingTitle.length()) / 2;
+        stringToSend.append(" ".repeat(Math.max(0, titlePadding))).append(battingTitle).append("\n\n");
+        stringToSend.append("AB  H   R  RBI  BB  HR  AVG  OPS\n");
+
+        String statsRowFormat = "%-4d%-4d%-4d%-4d%-4d%-3d%-5s%s\n";
         for(LineupBatter batter : playingBatters){
-            String defaultName = batter.useName.charAt(0) + "." + batter.useLastName;
-            String name;
-            if(3 + defaultName.length() > 14){
-                name = batter.useName + " " + batter.useLastName.charAt(0) + ".";
-            } else {
-                name = defaultName;
+            String paddedPos = String.format("%-2s", batter.positionAbbreviation);
+            String fullName = batter.useName + " " + batter.useLastName;
+            String namePrefix = "-- (" + paddedPos + ") " + fullName + " ";
+            int dashCount = ROW_WIDTH - namePrefix.length();
+            if (dashCount < 1) {
+                fullName = fullName.substring(0, fullName.length() + dashCount - 1);
+                namePrefix = "-- (" + paddedPos + ") " + fullName + " ";
+                dashCount = 1;
             }
+            stringToSend.append(namePrefix).append("-".repeat(dashCount)).append("\n");
 
-            String finalName = String.format("%-2s", batter.positionAbbreviation) + " " + name;
-
-            stringToSend.append(String.format(battersRowFormat, finalName, batter.atBats, batter.runs, batter.hits,
-                    batter.rbi, batter.baseOnBalls, batter.homeRuns));
+            String avg = (batter.avg != null) ? batter.avg : "---";
+            String ops = (batter.ops != null) ? batter.ops : "---";
+            stringToSend.append(String.format(statsRowFormat, batter.atBats, batter.hits, batter.runs,
+                    batter.rbi, batter.baseOnBalls, batter.homeRuns, avg, ops));
         }
 
         log.info("BATTER STRING BUILT");
@@ -356,8 +370,10 @@ public class PostGameService {
         Integer atBats;
         Integer baseOnBalls;
         Integer hits;
+        String avg;
+        String ops;
 
-        public LineupBatter(String useName, String useLastName, String positionAbbreviation, Integer homeRuns, Integer rbi, Integer runs, Integer atBats, Integer baseOnBalls, Integer hits) {
+        public LineupBatter(String useName, String useLastName, String positionAbbreviation, Integer homeRuns, Integer rbi, Integer runs, Integer atBats, Integer baseOnBalls, Integer hits, String avg, String ops) {
             this.useName = useName;
             this.useLastName = useLastName;
             this.positionAbbreviation = positionAbbreviation;
@@ -367,6 +383,8 @@ public class PostGameService {
             this.atBats = atBats;
             this.baseOnBalls = baseOnBalls;
             this.hits = hits;
+            this.avg = avg;
+            this.ops = ops;
         }
     }
 
