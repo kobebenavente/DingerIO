@@ -244,7 +244,7 @@ public class LiveGameService {
                         String message = "## 🔄 Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)).getFullName()
                                 + " (" + generatePitcherStatLine(true, feed, lastGameState
-                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) + ") "
+                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
@@ -252,7 +252,7 @@ public class LiveGameService {
                         String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)).getFullName()
                                 + " (" + generatePitcherStatLine(true, feed, lastGameState
-                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)) + ") "
+                                , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
@@ -263,7 +263,7 @@ public class LiveGameService {
                         String message = "## 🔄 Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + awayPitchingPlayerIds.get(awayPitchingPlayerIds.size() - 2)).getFullName() +
                                 " (" + generatePitcherStatLine(false, feed, lastGameState
-                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2)) + ") "
+                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by "
                                 + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
                         notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
@@ -271,7 +271,7 @@ public class LiveGameService {
                         String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + awayPitchingPlayerIds.get(awayPitchingPlayerIds.size() - 2)).getFullName() +
                                 " (" + generatePitcherStatLine(false, feed, lastGameState
-                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2))
+                                , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2), false)
                                 + ") "
                                 + "is replaced by "
                                 + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
@@ -290,7 +290,8 @@ public class LiveGameService {
                         for(int i = 0; i < lastInningHomePitchers.size(); i++){
                             //STOPPED HERE - CONTINUE.
                             //LOOPING THROUGH ALL PITCHER IDS AND GENERATING THEIR STATLINE
-                            pitcherStatlines.append("• ").append(generatePitcherStatLine(true, feed, lastGameState, lastInningHomePitchers.get(i)));
+                            pitcherStatlines.append("• ").append(generatePitcherStatLine(true, feed, lastGameState, lastInningHomePitchers.get(i)
+                                    , true));
                             if(i != lastInningHomePitchers.size() - 1){
                                 pitcherStatlines.append("\n");
                             }
@@ -301,7 +302,8 @@ public class LiveGameService {
                         for(int i = 0; i < lastInningAwayPitchers.size(); i++){
                             //STOPPED HERE - CONTINUE.
                             //LOOPING THROUGH ALL PITCHER IDS AND GENERATING THEIR STATLINE
-                            pitcherStatlines.append("• ").append(generatePitcherStatLine(false, feed, lastGameState, lastInningAwayPitchers.get(i)));
+                            pitcherStatlines.append("• ").append(generatePitcherStatLine(false, feed, lastGameState, lastInningAwayPitchers.get(i)
+                                    , true));
                             if(i != lastInningAwayPitchers.size() - 1){
                                 pitcherStatlines.append("\n");
                             }
@@ -325,7 +327,7 @@ public class LiveGameService {
                     for(Integer pitcherId : lastInningHomePitchers){
                         //STOPPED HERE - CONTINUE.
                         //LOOPING THROUGH ALL PITCHER IDS AND GENERATING THEIR STATLINE
-                        pitcherStatlines.append(generatePitcherStatLine(true, feed, lastGameState, pitcherId));
+                        pitcherStatlines.append(generatePitcherStatLine(true, feed, lastGameState, pitcherId, true));
                         pitcherStatlines.append("\n");
                     }
                 } else {
@@ -333,7 +335,7 @@ public class LiveGameService {
                     for(Integer pitcherId : lastInningAwayPitchers){
                         //STOPPED HERE - CONTINUE.
                         //LOOPING THROUGH ALL PITCHER IDS AND GENERATING THEIR STATLINE
-                        pitcherStatlines.append(generatePitcherStatLine(true, feed, lastGameState, pitcherId));
+                        pitcherStatlines.append(generatePitcherStatLine(true, feed, lastGameState, pitcherId, true));
                         pitcherStatlines.append("\n");
                     }
                 }
@@ -459,7 +461,8 @@ public class LiveGameService {
     }
 
 
-    private String generatePitcherStatLine(Boolean subbedTeamIsHomeTeam, LiveFeedResponseDTO feed, GameState gameState, Integer pitcherId) {
+    private String generatePitcherStatLine(Boolean subbedTeamIsHomeTeam, LiveFeedResponseDTO feed, GameState gameState, Integer pitcherId
+            , boolean includeName) {
         BoxScorePlayerPitchingStatsDTO stats;
         String pitcherName = feed.getGameData().getPlayers().get("ID" + pitcherId).getFullName();
 
@@ -473,8 +476,14 @@ public class LiveGameService {
             stats = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers().get("ID" + pitcherId).getStats().getPitching();
         }
 
-        return String.format("%s: %s IP | %s H | %s ER | %s BB | %s K | %s P"
-                , pitcherName, stats.getInningsPitched(), stats.getHits(), stats.getEarnedRuns(), stats.getBaseOnBalls()
+        if(includeName){
+            return String.format("%s: %s IP | %s H | %s ER | %s BB | %s K | %s P"
+                    , pitcherName, stats.getInningsPitched(), stats.getHits(), stats.getEarnedRuns(), stats.getBaseOnBalls()
+                    , stats.getStrikeOuts(), stats.getNumberOfPitches());
+        }
+
+        return String.format("%s IP | %s H | %s ER | %s BB | %s K | %s P"
+                , stats.getInningsPitched(), stats.getHits(), stats.getEarnedRuns(), stats.getBaseOnBalls()
                 , stats.getStrikeOuts(), stats.getNumberOfPitches());
     }
 
