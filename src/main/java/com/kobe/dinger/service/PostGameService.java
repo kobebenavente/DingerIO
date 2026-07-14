@@ -233,10 +233,17 @@ public class PostGameService {
                 String useLastName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseLastName();
                 String inningsPitched = boxScorePlayerDTO.getStats().getPitching().getInningsPitched();
                 Integer hits = boxScorePlayerDTO.getStats().getPitching().getHits();
+                Integer runs = boxScorePlayerDTO.getStats().getPitching().getRuns();
                 Integer earnedRuns = boxScorePlayerDTO.getStats().getPitching().getEarnedRuns();
                 Integer baseOnBalls = boxScorePlayerDTO.getStats().getPitching().getBaseOnBalls();
                 Integer strikeOuts = boxScorePlayerDTO.getStats().getPitching().getStrikeOuts();
-                pitcher = new LineupPitcher(useName, useLastName,hits,earnedRuns,baseOnBalls,strikeOuts, inningsPitched);
+                Integer homeRuns = boxScorePlayerDTO.getStats().getPitching().getHomeRuns();
+                Integer numberOfPitches = boxScorePlayerDTO.getStats().getPitching().getNumberOfPitches();
+                String era = null;
+                if (boxScorePlayerDTO.getSeasonStats() != null && boxScorePlayerDTO.getSeasonStats().getPitching() != null) {
+                    era = boxScorePlayerDTO.getSeasonStats().getPitching().getEra();
+                }
+                pitcher = new LineupPitcher(useName, useLastName, hits, runs, earnedRuns, baseOnBalls, strikeOuts, homeRuns, numberOfPitches, inningsPitched, era);
                 playingPitchers.add(pitcher);
             } else {
                 boxScorePlayerDTO = feed.getLiveData().getBoxscore().getTeams().getAway().getPlayers()
@@ -245,10 +252,17 @@ public class PostGameService {
                 String useLastName = feed.getGameData().getPlayers().get("ID" + pitcherId).getUseLastName();
                 String inningsPitched = boxScorePlayerDTO.getStats().getPitching().getInningsPitched();
                 Integer hits = boxScorePlayerDTO.getStats().getPitching().getHits();
+                Integer runs = boxScorePlayerDTO.getStats().getPitching().getRuns();
                 Integer earnedRuns = boxScorePlayerDTO.getStats().getPitching().getEarnedRuns();
                 Integer baseOnBalls = boxScorePlayerDTO.getStats().getPitching().getBaseOnBalls();
                 Integer strikeOuts = boxScorePlayerDTO.getStats().getPitching().getStrikeOuts();
-                pitcher = new LineupPitcher(useName, useLastName,hits,earnedRuns,baseOnBalls,strikeOuts, inningsPitched);
+                Integer homeRuns = boxScorePlayerDTO.getStats().getPitching().getHomeRuns();
+                Integer numberOfPitches = boxScorePlayerDTO.getStats().getPitching().getNumberOfPitches();
+                String era = null;
+                if (boxScorePlayerDTO.getSeasonStats() != null && boxScorePlayerDTO.getSeasonStats().getPitching() != null) {
+                    era = boxScorePlayerDTO.getSeasonStats().getPitching().getEra();
+                }
+                pitcher = new LineupPitcher(useName, useLastName, hits, runs, earnedRuns, baseOnBalls, strikeOuts, homeRuns, numberOfPitches, inningsPitched, era);
                 playingPitchers.add(pitcher);
             }
         }
@@ -320,38 +334,78 @@ public class PostGameService {
         for(LineupBatter batter : playingBatters){
             String paddedPos = String.format("%-2s", batter.positionAbbreviation);
             String fullName = batter.useName + " " + batter.useLastName;
-            String namePrefix = "-- (" + paddedPos + ") " + fullName + " ";
+            String namePrefix = "(" + paddedPos + ") " + fullName + " ";
             int dashCount = ROW_WIDTH - namePrefix.length();
             if (dashCount < 1) {
                 fullName = fullName.substring(0, fullName.length() + dashCount - 1);
-                namePrefix = "-- (" + paddedPos + ") " + fullName + " ";
+                namePrefix = "(" + paddedPos + ") " + fullName + " ";
                 dashCount = 1;
             }
             stringToSend.append(namePrefix).append("-".repeat(dashCount)).append("\n");
 
-            String avg = (batter.avg != null) ? batter.avg : "---";
-            String ops = (batter.ops != null) ? batter.ops : "---";
+            String avg;
+            if (batter.avg != null) {
+                avg = batter.avg;
+            } else {
+                avg = "---";
+            }
+            String ops;
+            if (batter.ops != null) {
+                ops = batter.ops;
+            } else {
+                ops = "---";
+            }
             stringToSend.append(String.format(statsRowFormat, batter.atBats, batter.hits, batter.runs,
                     batter.rbi, batter.baseOnBalls, batter.homeRuns, avg, ops));
         }
 
         log.info("BATTER STRING BUILT");
 
-        stringToSend.append("\n");
-        stringToSend.append("    Pitchers     IP  H  ER BB K\n");
         stringToSend.append("================================\n");
-        String pitchersRowFormat = "%-15s %-3s %2d  %-2d %-2d %-2d\n";
+        String pitchingTitle = teamName + " Pitching";
+        int pitchingTitlePadding = (ROW_WIDTH - pitchingTitle.length()) / 2;
+        stringToSend.append(" ".repeat(Math.max(0, pitchingTitlePadding))).append(pitchingTitle).append("\n\n");
+        stringToSend.append("IP   H   R  ER  BB  K  P  ERA HR\n");
+
+        String pitchersRowFormat = "%-5s%-4d%-3d%-4d%-4d%-3d%-3d%-5s%d\n";
         for(LineupPitcher pitcher : playingPitchers){
-            String defaultName = pitcher.useName.charAt(0) + "." + pitcher.useLastName;
-            String name;
-            if(2 + defaultName.length() > 15){
-                name = pitcher.useName + " " + pitcher.useLastName.charAt(0) + ".";
-            } else {
-                name = defaultName;
+            String fullName = pitcher.useName + " " + pitcher.useLastName;
+            String namePrefix = fullName + " ";
+            int dashCount = ROW_WIDTH - namePrefix.length();
+            if (dashCount < 1) {
+                fullName = fullName.substring(0, fullName.length() + dashCount - 1);
+                namePrefix = fullName + " ";
+                dashCount = 1;
             }
+            stringToSend.append(namePrefix).append("-".repeat(dashCount)).append("\n");
 
-            stringToSend.append(String.format(pitchersRowFormat, "  " + name, pitcher.inningsPitched, pitcher.hits, pitcher.earnedRuns, pitcher.baseOnBalls, pitcher.strikeOuts));
-
+            String era;
+            if (pitcher.era != null) {
+                era = pitcher.era;
+            } else {
+                era = "-.--";
+            }
+            int runs;
+            if (pitcher.runs != null) {
+                runs = pitcher.runs;
+            } else {
+                runs = 0;
+            }
+            int homeRuns;
+            if (pitcher.homeRuns != null) {
+                homeRuns = pitcher.homeRuns;
+            } else {
+                homeRuns = 0;
+            }
+            int numberOfPitches;
+            if (pitcher.numberOfPitches != null) {
+                numberOfPitches = pitcher.numberOfPitches;
+            } else {
+                numberOfPitches = 0;
+            }
+            stringToSend.append(String.format(pitchersRowFormat,
+                    pitcher.inningsPitched, pitcher.hits, runs, pitcher.earnedRuns,
+                    pitcher.baseOnBalls, pitcher.strikeOuts, numberOfPitches, era, homeRuns));
         }
         log.info("PITCHER STRING BUILT");
         stringToSend.append("```");
@@ -392,19 +446,27 @@ public class PostGameService {
         String useName;
         String useLastName;
         Integer hits;
+        Integer runs;
         Integer earnedRuns;
         Integer baseOnBalls;
         Integer strikeOuts;
+        Integer homeRuns;
+        Integer numberOfPitches;
         String inningsPitched;
+        String era;
 
-        public LineupPitcher(String useName, String useLastName, Integer hits, Integer earnedRuns, Integer baseOnBalls, Integer strikeOuts, String inningsPitched){
+        public LineupPitcher(String useName, String useLastName, Integer hits, Integer runs, Integer earnedRuns, Integer baseOnBalls, Integer strikeOuts, Integer homeRuns, Integer numberOfPitches, String inningsPitched, String era){
             this.useName = useName;
             this.useLastName = useLastName;
             this.hits = hits;
+            this.runs = runs;
             this.earnedRuns = earnedRuns;
             this.baseOnBalls = baseOnBalls;
             this.strikeOuts = strikeOuts;
+            this.homeRuns = homeRuns;
+            this.numberOfPitches = numberOfPitches;
             this.inningsPitched = inningsPitched;
+            this.era = era;
         }
     }
 

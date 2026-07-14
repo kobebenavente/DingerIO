@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class BoxScorePlayerPitchingStatsDTO {
     String summary;
     String inningsPitched;
+    Integer runs;
     Integer earnedRuns;
     Integer baseOnBalls;
     Integer hits;
+    Integer homeRuns;
     Integer strikeOuts;
     Integer numberOfPitches;
 
@@ -20,12 +22,28 @@ public class BoxScorePlayerPitchingStatsDTO {
         this.inningsPitched = inningsPitched;
     }
 
+    public Integer getRuns() {
+        return runs;
+    }
+
+    public void setRuns(Integer runs) {
+        this.runs = runs;
+    }
+
     public Integer getEarnedRuns() {
         return earnedRuns;
     }
 
     public void setEarnedRuns(Integer earnedRuns) {
         this.earnedRuns = earnedRuns;
+    }
+
+    public Integer getHomeRuns() {
+        return homeRuns;
+    }
+
+    public void setHomeRuns(Integer homeRuns) {
+        this.homeRuns = homeRuns;
     }
 
     public Integer getBaseOnBalls() {
