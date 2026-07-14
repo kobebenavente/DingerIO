@@ -193,9 +193,9 @@ public class PreGameService{
             if(!lastGameState.isGameDayHomeRosterSent() && subbedTeamIsHomeTeam && homeLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
 
-                String message = "## 🔔 Pre-Game Alert — " + homeTeam.getTeamName() +
+                String message = "## 📋 Starting Lineup Announced!\n" +
                         " Starting Lineup Confirmed!\n" +
-                        generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher);
+                        generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher, homeTeam);
 
                 notificationService.sendEmbed(sub, message);
             }
@@ -203,9 +203,8 @@ public class PreGameService{
             if(!lastGameState.isGameDayAwayRosterSent() && !subbedTeamIsHomeTeam && awayLineupAnnounced
                     && sub.getNotificationEvents().contains(NotificationEvent.GAME_DAY_LINEUP)){
 
-                String message = "## 🔔 Pre-Game Alert — " + awayTeam.getTeamName() +
-                        " Starting Lineup Confirmed!\n" +
-                        generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher);
+                String message = "## 📋 Starting Lineup Announced!\n" +
+                        generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher, awayTeam);
 
                 notificationService.sendEmbed(sub, message);
             }
@@ -272,12 +271,18 @@ public class PreGameService{
         .append("K: ").append(seasonStats.getStrikeOuts());
     }
 
-    public String generateLineupMessage(List<LineupBatter> lineupBatters, LineupPitcher lineupPitcher){
+    public String generateLineupMessage(List<LineupBatter> lineupBatters, LineupPitcher lineupPitcher, Team team){
         StringBuilder stringToSend = new StringBuilder("```\n");
         String pitcherName = lineupPitcher.useName + " " + lineupPitcher.useLastName;
         if(9 + pitcherName.length() > 33){
             pitcherName = lineupPitcher.useName.charAt(0) + ". " + lineupPitcher.useLastName;
         }
+
+        final int ROW_WIDTH = 32;
+        String battingTitle = team.getTeamName() + " Starting Lineup:";
+        int titlePadding = (ROW_WIDTH - battingTitle.length()) / 2;
+        stringToSend.append(" ".repeat(Math.max(0, titlePadding))).append(battingTitle).append("\n\n");
+
         stringToSend.append("Pitcher: ").append(pitcherName).append("\n").append(lineupPitcher.winLoss).append(" W/L | ")
                 .append(lineupPitcher.era).append(" ERA | ").append(lineupPitcher.strikeOuts).append(" SO\n");
         stringToSend.append("--------------------------------\n");
