@@ -46,7 +46,7 @@ public class SubscriptionService {
         subscription.setTeam(team);
         teamSubscriptionRepository.save(subscription);
         notificationService.sendEmbed(subscription, "## ⚙ Team Change Successful: \n Your subscribed team has "
-                + "been changed to the " + team.getTeamName() + " " + team.getTeamEmoji());
+                + "been changed to the " + team.getTeamName() + " " + team.getTeamEmoji(), 0xd7d7d7);
     }
 
 

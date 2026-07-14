@@ -231,7 +231,7 @@ public class LiveGameService {
                         + homeTeam.getTeamName()
                         + "\n"
                         + "1st inning is underway!";
-                notificationService.sendEmbed(sub, stringToSend, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                notificationService.sendEmbed(sub, stringToSend, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
             }
 
 
@@ -247,7 +247,7 @@ public class LiveGameService {
                                 , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
                     } else if (startingHomePitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
                         String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2)).getFullName()
@@ -255,7 +255,7 @@ public class LiveGameService {
                                 , homePitchingPlayerIds.get(homePitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by " +
                                 feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
                     }
                 } else if (!subbedTeamIsHomeTeam && awayPitcherChanged){
                     log.info("Now attempting pitcher change message for {}", awayTeam.getTeamName());
@@ -266,7 +266,7 @@ public class LiveGameService {
                                 , awayPitchingPlayerIds.get(awayPitchingPlayerIds.size()-2), false) + ") "
                                 + "is replaced by "
                                 + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
                     } else if (startingAwayPitcherChanged && events.contains(NotificationEvent.STARTING_PITCHER_CHANGE)){
                         String message = "## 🔄 Starting Pitcher Pulled \n" + feed.getGameData().getPlayers()
                                 .get("ID" + awayPitchingPlayerIds.get(awayPitchingPlayerIds.size() - 2)).getFullName() +
@@ -275,7 +275,7 @@ public class LiveGameService {
                                 + ") "
                                 + "is replaced by "
                                 + feed.getLiveData().getPlays().getCurrentPlay().getMatchup().getPitcher().getFullName();
-                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                        notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
                     }
                 }
             }
@@ -315,7 +315,7 @@ public class LiveGameService {
                             + generateInningChangeSummary(subbedTeamIsHomeTeam, feed,  homeTeam, awayTeam, currentInning-1, topInningPlayIds, bottomInningPlayIds)
                             + "\n\n" + pitcherStatlines
                             + "\n\n" + getInningOrdinal(currentInning) + " inning is underway!";
-                    notificationService.sendEmbed(sub, message);
+                    notificationService.sendEmbed(sub, message, 5939048);
                 }
             }
 
@@ -343,7 +343,7 @@ public class LiveGameService {
                         + currentInning
                         + " has started!"
                         + "\n" + pitcherStatlines.toString();
-                notificationService.sendEmbed(sub, message);
+                notificationService.sendEmbed(sub, message, 0x5aa368);
             }
 
             //SCORE CHANGE
@@ -353,7 +353,7 @@ public class LiveGameService {
                         + notificationService.generateLineScores(subbedTeamIsHomeTeam, currentHomeScore
                         , currentAwayScore, homeTeam, awayTeam)
                         + "\n" + scoringPlayDescription;
-                notificationService.sendEmbed(sub, messageDescription, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                notificationService.sendEmbed(sub, messageDescription, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
             }
 
             //LEAD CHANGE OR TIEING PLAYS
@@ -410,7 +410,7 @@ public class LiveGameService {
                     }
                 }
                 if(!message.isEmpty()){
-                    notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date);
+                    notificationService.sendEmbed(sub, message, inningHalfAndInningNumber, homeTeam, awayTeam, date, 0x5aa368);
                 }
             }
         }

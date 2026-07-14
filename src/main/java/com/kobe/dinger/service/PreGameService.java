@@ -187,7 +187,7 @@ public class PreGameService{
                     appendPitcherMatchupInfo(message, "### ", feed.getGameData().getProbablePitchers().getHome().getFullName(),
                             homePitcherUseNamesAndHandSide.getPitchSide(), homePitcherSeasonStats);
                 }
-                notificationService.sendEmbed(sub, message.toString());
+                notificationService.sendEmbed(sub, message.toString(), 0x6296aa);
             }
 
             if(!lastGameState.isGameDayHomeRosterSent() && subbedTeamIsHomeTeam && homeLineupAnnounced
@@ -197,7 +197,7 @@ public class PreGameService{
                         " Starting Lineup Confirmed!\n" +
                         generateLineupMessage(homeBattingOrderLineupBatters, homeStartingPitcher, homeTeam);
 
-                notificationService.sendEmbed(sub, message);
+                notificationService.sendEmbed(sub, message, 0x6296aa);
             }
 
             if(!lastGameState.isGameDayAwayRosterSent() && !subbedTeamIsHomeTeam && awayLineupAnnounced
@@ -206,7 +206,7 @@ public class PreGameService{
                 String message = "## 📋 Starting Lineup Announced!\n" +
                         generateLineupMessage(awayBattingOrderLineupBatters, awayStartingPitcher, awayTeam);
 
-                notificationService.sendEmbed(sub, message);
+                notificationService.sendEmbed(sub, message, 0x6296aa);
             }
         }
         if (homeLineupAnnounced) {

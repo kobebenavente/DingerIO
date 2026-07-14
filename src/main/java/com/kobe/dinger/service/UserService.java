@@ -72,7 +72,7 @@ public class UserService implements UserDetailsService {
         notificationService.sendEmbed(subscription, "## 👋 Greetings! \n Your server has " +
                 "been successfully connected and you will now receive updates for the "
                 + subscription.getTeam().getTeamName() + " " + subscription.getTeam().getTeamEmoji()
-                + "\n\n To change notification preferences, use your dashboard at DingerIO.com");
+                + "\n\n To change notification preferences, use your dashboard at DingerIO.com", 0xd7d7d7);
     }
 
 }

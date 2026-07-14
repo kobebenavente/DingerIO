@@ -16,7 +16,6 @@ import com.kobe.dinger.model.TeamSubscription;
 
 @Service
 public class NotificationService {
-    private static final int tempDefaultColor = 3447003;
     private static final Map<String, Object> AUTHOR = Map.of(
         "name", "DingerIO.com • MLB Discord Updates",
         "url", "https://github.com/kobebenavente/DingerIO",
@@ -52,24 +51,18 @@ public class NotificationService {
         }
     }
 
-    public void sendEmbed(TeamSubscription subscription, String description) {
+    public void sendEmbed(TeamSubscription subscription, String description, int colorCode) {
         String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
         if (webhookUrl == null || webhookUrl.isBlank()) return;
-        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, tempDefaultColor));
+        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, colorCode));
     }
 
-    public void sendEmbed(TeamSubscription subscription, String description, Team homeTeam, Team awayTeam, String date) {
-        String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
-        if (webhookUrl == null || webhookUrl.isBlank()) return;
-        String footerText = awayTeam.getTeamName() + " @ " + homeTeam.getTeamName() + " - " + date;
-        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, footerText, tempDefaultColor));
-    }
-
-    public void sendEmbed(TeamSubscription subscription, String description, String inningHalfAndNumber, Team homeTeam, Team awayTeam, String date) {
+    public void sendEmbed(TeamSubscription subscription, String description, String inningHalfAndNumber, Team homeTeam, Team awayTeam, String date
+            , int colorCode) {
         String webhookUrl = subscription.getUser().getDiscordWebhookUrl();
         if (webhookUrl == null || webhookUrl.isBlank()) return;
         String footerText = inningHalfAndNumber + " - " + awayTeam.getTeamName() + " @ " + homeTeam.getTeamName() + " - " + date;
-        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, footerText, tempDefaultColor));
+        notificationExecutor.submit(() -> postEmbedToDiscord(webhookUrl, description, footerText, colorCode));
     }
 
     private void postToDiscord(String webhookUrl, String message) {

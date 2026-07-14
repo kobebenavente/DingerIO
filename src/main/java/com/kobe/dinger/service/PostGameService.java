@@ -131,7 +131,7 @@ public class PostGameService {
                     log.error("Failed to generate box score for game {}", gamePk, e);
                 }
 
-                notificationService.sendEmbed(sub, gameEndMessage.toString());
+                notificationService.sendEmbed(sub, gameEndMessage.toString(), 0x676767);
             }
 
             //GAME ENDED - UPDATED STANDINGS MESSAGE
@@ -143,7 +143,7 @@ public class PostGameService {
                     standingsMessage.append(generateStandingsString(sub.getTeam().getDivisionId()
                             , awayTeamStandings, sub.getTeam().getMlbTeamId(), feed, false));
                 }
-                notificationService.sendEmbed(sub, standingsMessage.toString());
+                notificationService.sendEmbed(sub, standingsMessage.toString(), 0x676767);
             }
         }
         lastGameState.setGameEndedMessageSent(true);
