@@ -23,6 +23,7 @@ import com.kobe.dinger.repository.TeamRepository;
 
 @Service
 public class PostGameService {
+    private static final String LIVE_FEED_URL = "https://statsapi.mlb.com/api/v1.1/game/%d/feed/live";
     private static final Logger log = LoggerFactory.getLogger(PostGameService.class);
     private final RestTemplate restTemplate;
     private final NotificationService notificationService;
@@ -93,7 +94,7 @@ public class PostGameService {
         // standings haven't updated yet. retry on next poll.
         boolean standingsUpdated = homeRecordChanged && awayRecordChanged;
 
-        String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
+        String url = String.format(LIVE_FEED_URL, gamePk);
         LiveFeedResponseDTO feed = restTemplate.getForObject(url, LiveFeedResponseDTO.class);
 
         if (feed == null || feed.getLiveData() == null || feed.getLiveData().getLinescore() == null) {

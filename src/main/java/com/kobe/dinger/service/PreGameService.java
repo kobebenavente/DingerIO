@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class PreGameService{
+    private static final String LIVE_FEED_URL = "https://statsapi.mlb.com/api/v1.1/game/%d/feed/live";
     private final NotificationService notificationService;
     private final RestTemplate restTemplate;
     private static final Logger log = LoggerFactory.getLogger(PreGameService.class);
@@ -37,7 +38,7 @@ public class PreGameService{
 
 
     public void processGame(GameDTO gameInfo, Integer gamePk, List<TeamSubscription> subscriptions, GameState lastGameState, Team homeTeam, Team awayTeam){
-        String url = "https://statsapi.mlb.com/api/v1.1/game/" + gamePk + "/feed/live";
+        String url = String.format(LIVE_FEED_URL, gamePk);
 
         ZonedDateTime gameTime = Instant.parse(gameInfo.getGameDate()).atZone(ZoneId.of("America/Los_Angeles"));
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("America/Los_Angeles"));
