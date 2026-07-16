@@ -84,7 +84,7 @@ public class LiveGameService {
         updateGameState(feed, lastGameState, events);
 
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"));
-        String inningLabel = events.inningHalf() + "of" + getInningOrdinal(events.currentInning());
+        String inningLabel = events.inningHalf() + " of " + getInningOrdinal(events.currentInning());
 
         for (TeamSubscription sub : subscriptions) {
             boolean isHomeTeam = sub.getTeam().equals(homeTeam);
