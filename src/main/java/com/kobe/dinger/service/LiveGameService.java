@@ -96,6 +96,7 @@ public class LiveGameService {
             notifyScoreChange(sub, events, homeTeam, awayTeam, inningLabel, date, isHomeTeam);
             notifyLeadChange(sub, events, homeTeam, awayTeam, inningLabel, date, isHomeTeam);
             notifyExtraInnings(sub, events, homeTeam, awayTeam, isHomeTeam);
+            notifyPotentialWalkoff(sub, events, homeTeam,awayTeam, isHomeTeam, inningLabel, date);
         }
     }
 
@@ -164,7 +165,7 @@ public class LiveGameService {
         boolean inningChanged = currentInning > lastGameState.getCurrentInning();
         boolean halfChanged = inningChanged || !inningHalf.equals(lastGameState.getInningHalf());
         boolean isExtraInnings = currentInning > 9;
-        boolean potentialWalkoff = currentInning >= 9 && !inningHalf.equals(lastGameState.getInningHalf())
+        boolean inningTransitionPotentialWalkoff = currentInning >= 9 && !inningHalf.equals(lastGameState.getInningHalf())
                 && currentHomeScore == currentAwayScore && (inningHalf.equals("bottom") || inningHalf.equals("Bottom"));
 
         boolean homePitcherChanged = homePitchingPlayerIds.size() > lastGameState.getNumOfHomePitchers();
@@ -174,6 +175,7 @@ public class LiveGameService {
         boolean startingAwayPitcherChanged = awayPitcherChanged && awayPitchingPlayerIds.size() == 2;
 
         boolean gameTied = scoreChanged && currentHomeScore == currentAwayScore && currentHomeScore > 0;
+        boolean gameTiedNowPotentialWalkOff = currentInning >= 9 && inningHalf.equals("Bottom") && gameTied;
         boolean homeTookLead = scoreChanged && currentHomeScore > currentAwayScore
                 && lastGameState.getAwayScore() >= lastGameState.getHomeScore();
         boolean awayTookLead = scoreChanged && currentAwayScore > currentHomeScore
@@ -242,7 +244,7 @@ public class LiveGameService {
                 currentInning, inningHalf, currentHomeScore, currentAwayScore,
                 scoringPlays, topInningPlayIds, bottomInningPlayIds,
                 lastInningHomePitchers, lastInningAwayPitchers,
-                homePitchingPlayerIds, awayPitchingPlayerIds, isExtraInnings, potentialWalkoff
+                homePitchingPlayerIds, awayPitchingPlayerIds, isExtraInnings, inningTransitionPotentialWalkoff
         );
     }
 
@@ -347,12 +349,27 @@ public class LiveGameService {
     }
 
     private void notifyPotentialWalkoff(TeamSubscription sub, GameEvents events, Team homeTeam, Team awayTeam,
-                                        boolean isHomeTeam){
-        if(!events.potentialWalkoff() || sub.getNotificationEvents().contains(NotificationEvent.WALKOFF)){
+                                        boolean isHomeTeam, String inningLabel, String date){
+        if(!events.potentialWalkoff() || !sub.getNotificationEvents().contains(NotificationEvent.WALKOFF)){
             return;
         }
 
-        StringBuilder message = new StringBuilder("## 🚨 Walk");
+        StringBuilder message = new StringBuilder("## ");
+
+        if(isHomeTeam && events.currentHomeScore == events.currentAwayScore){
+            message.append("👀 ").append(homeTeam.getTeamName()).append(" Are In Walk-off Win Position!")
+                    .append("\nScore is tied ").append(events.currentHomeScore).append(" - ")
+                    .append(events.currentAwayScore).append(" with the ").append(homeTeam.getTeamName())
+                    .append(" at bat!");
+        } else if (!isHomeTeam && events.currentHomeScore == events.currentAwayScore){
+            message.append("🚨 ").append(awayTeam.getTeamName()).append(" Face Walk-off Threat")
+                    .append("\nScore is tied ").append(events.currentHomeScore).append(" - ")
+                    .append(events.currentAwayScore).append(" with the ").append(homeTeam.getTeamName())
+                    .append(" at bat!");
+        }
+
+        notificationService.sendEmbed(sub, message.toString(), inningLabel, homeTeam, awayTeam
+                , date, LIVE_GAME_MESSAGE_COLOR);
     }
 
     private void notifyInningChange(TeamSubscription sub, GameEvents events, LiveFeedResponseDTO feed,
