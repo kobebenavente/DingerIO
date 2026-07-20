@@ -11,10 +11,10 @@ One of the main features of DingerIO is personalization. Fans care more about di
 
 
 ### Team Selection Menu
-![Team_Picker_Screenshot](docs/teampicker.png)
+![Team_Picker_Screenshot](docs/teampicker2.png)
 
 ### Notification Selection Dashboard
-![Dashboard Screenshot](docs/dashboard.png)
+![Dashboard Screenshot](docs/dashboard2.png)
 
 ---
 
