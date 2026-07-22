@@ -511,6 +511,9 @@ public class LiveGameService {
             case 1 -> "1st";
             case 2 -> "2nd";
             case 3 -> "3rd";
+            case 21 -> "21st";
+            case 22 -> "22nd";
+            case 23 -> "23rd";
             default -> currentInning + "th";
         };
     }
