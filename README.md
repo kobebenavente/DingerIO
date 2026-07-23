@@ -27,7 +27,7 @@ Users can create an account, select a team of their choice, then configure up to
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/kbenavente24/DingerIO.git
+git clone https://github.com/kobebenavente/DingerIO.git
 cd DingerIO
 ```
 
