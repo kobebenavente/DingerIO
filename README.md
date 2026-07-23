@@ -5,6 +5,7 @@
   <br>
 </p>
 
+
 ## What is DingerIO?
 DingerIO is a free, Major League Baseball notification service that sends team-specific updates directly to your Discord server via webhooks. The application runs entirely on your own machine, but online deployment is in progress. 
 
@@ -16,29 +17,41 @@ Users can create an account, select a team of their choice, then configure up to
 
 ![Standings_Screenshot](docs/standings_message.png)
 
+## Running DingerIO On Your Machine
 
----
+### Prerequisites
+- Java 21
+- Node.js
+- Docker (for the PostgreSQL container)                                                                                                                                                     
+- Maven (included via `mvnw` wrapper — no install needed)
 
-## How It Works
-DingerIO works by connecting to the official MLB Stats API, which provides live game data, team information, and full player rosters for every team in the league. When the application first starts up, it syncs and stores all 30 MLB teams and their rosters into a local database, so subscription lookups are fast and don't require repeated calls to the external API.
+### 1. Clone the repository
+```bash
+git clone https://github.com/kbenavente24/DingerIO.git
+cd DingerIO
+```
 
-From there, the backend runs two scheduled processes. The first runs every Monday morning and fetches the upcoming 7-day schedule for each subscribed team, sending users a preview of their team's games for the week. The second is the main polling loop, which runs every 15 seconds throughout the day. On each cycle, it fetches the schedule for the current date to get a list of all games being played that day. For each game, it checks which users are subscribed to either team and routes the game through one of three handlers depending on its status.
+### 2. Configure environment variables
+```bash
+cp .env.example .env
+```
+Open `.env` and fill in your values. The database credentials must match what Docker uses to start the PostgreSQL container.
 
-If a game hasn't started yet, the pre-game handler checks how far away the first pitch is. A game day reminder is sent a few hours before the game, and a second notification is sent within minutes of the first pitch. Once a game is live, the live game handler fetches the full real-time game feed and compares it against the last recorded state. If anything has changed — a run scored, a new pitcher entered, an inning ended — it sends the appropriate notification to every subscribed user who has that event turned on. When a game ends, the final score is sent along with updated division standings if the user has that event enabled. If a game is postponed, a notification is sent letting users know it will not be played that day.
+### 3. Start the database
+```bash
+docker-compose up -d
+```
 
-To prevent duplicate notifications, each game tracks a state object that records the current score, inning, and active pitchers. A notification is only sent when a change is detected from the previously recorded state
+### 4. Start the backend
+```bash
+./mvnw spring-boot:run
+```
 
-## Tech Stack
-- **Java / Spring Boot** — backend application and scheduling
-- **PostgreSQL** — persistent storage for users, teams, players, and subscriptions
-- **MLB Stats API** — source for live game data and roster information
-- **Discord Webhooks** — delivery channel for real-time notifications
-- **React** — frontend dashboard for managing notification preferences
-- **Vite** — frontend build tool and development server
-- **JWT (JSON Web Tokens)** — stateless user authentication
+### 5. Start the frontend
+```bash
+cd dinger-frontend
+npm install
+npm run dev
+```
 
-
----
-
-## Status
-Majority of planned features have been implemented and are operating as intended. Next step are adding the remaining notification events and deploying the application and database to a cloud server so that the application does not need to be run locally.
+The app will be available at http://localhost:5173
