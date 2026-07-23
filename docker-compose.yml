@@ -5,8 +5,8 @@ services:
       - "5432:5432"
     environment:
         POSTGRES_DB: dinger
-        POSTGRES_USER: kobe
-        POSTGRES_PASSWORD: 42812
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
